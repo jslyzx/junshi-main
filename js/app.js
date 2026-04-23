@@ -144,12 +144,12 @@ function renderPage(pageId) {
                             ${pageData.columns.map(col => `<td>${row[col.key] || '-'}</td>`).join('')}
                             <td>
                                 ${pageId === 'project-followup' ? `
-                                    <a href="javascript:;" style="color:var(--primary-color); margin-right:8px;">编辑</a>
-                                    <a href="javascript:;" style="color:var(--primary-color); margin-right:8px;">医院</a>
-                                    <a href="javascript:;" style="color:var(--primary-color); margin-right:8px;">商品</a>
-                                    <a href="javascript:;" style="color:var(--primary-color); margin-right:8px;">表单</a>
-                                    <a href="javascript:;" style="color:var(--primary-color); margin-right:8px;">规则</a>
-                                    <a href="javascript:;" style="color:#f56c6c;">停用</a>
+                                    <a href="javascript:;" style="color:var(--primary-color); margin-right:8px;" onclick="openEditModal('${pageId}', ${row.id})">编辑</a>
+                                    <a href="javascript:;" style="color:var(--primary-color); margin-right:8px;" onclick="handleAction('医院', '${row.name}')">医院</a>
+                                    <a href="javascript:;" style="color:var(--primary-color); margin-right:8px;" onclick="handleAction('商品', '${row.name}')">商品</a>
+                                    <a href="javascript:;" style="color:var(--primary-color); margin-right:8px;" onclick="handleAction('表单', '${row.name}')">表单</a>
+                                    <a href="javascript:;" style="color:var(--primary-color); margin-right:8px;" onclick="handleAction('规则', '${row.name}')">规则</a>
+                                    <a href="javascript:;" style="color:#f56c6c;" onclick="handleAction('停用', '${row.name}')">停用</a>
                                 ` : `
                                     <a href="javascript:;" style="color:var(--primary-color); margin-right:10px;" onclick="openEditModal('${pageId}', ${row.id})">编辑</a>
                                     <a href="javascript:;" style="color:#f56c6c;" onclick="deleteRow('${pageId}', ${row.id})">删除</a>
@@ -244,5 +244,15 @@ function deleteRow(pageId, rowId) {
             renderPage(pageId);
             alert('删除成功！');
         }
+    }
+}
+
+function handleAction(actionName, projectName) {
+    if (actionName === '停用') {
+        if (confirm(`确定要停用项目【${projectName}】吗？`)) {
+            alert(`项目【${projectName}】已停用`);
+        }
+    } else {
+        alert(`正在进入【${projectName}】的${actionName}配置界面...`);
     }
 }
