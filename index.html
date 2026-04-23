@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 艾伯维数据看板</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #2d3a4b;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-container {
+            width: 400px;
+            padding: 35px 35px 15px 35px;
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 5px;
+        }
+        .title {
+            font-size: 26px;
+            color: #eee;
+            margin: 0 auto 40px auto;
+            text-align: center;
+            font-weight: bold;
+        }
+        .input-group {
+            margin-bottom: 22px;
+        }
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            color: #fff;
+            box-sizing: border-box;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #409EFF;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #66b1ff;
+        }
+        .tips {
+            font-size: 14px;
+            color: #fff;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="title">艾伯维数据看板</div>
+        <div class="tips">用户名: adminGY | 密码: BG123456</div>
+        <div class="input-group">
+            <input type="text" placeholder="用户名" value="adminGY">
+        </div>
+        <div class="input-group">
+            <input type="password" placeholder="密码" value="BG123456">
+        </div>
+        <button onclick="location.href='app.html'">登 录</button>
+    </div>
+</body>
+</html>

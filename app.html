@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>艾伯维数据看板</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">艾伯维数据看板</div>
+            <div class="menu" id="sideMenu">
+                <!-- Menu items will be injected by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-container">
+            <!-- Header -->
+            <div class="header">
+                <div class="breadcrumb" id="breadcrumb">首页</div>
+                <div class="user-info">
+                    <span>超级管理员</span>
+                    <button class="btn btn-primary" style="padding: 5px 10px;">退出</button>
+                </div>
+            </div>
+
+            <!-- Tags View -->
+            <div class="tags-view" id="tagsView">
+                <!-- Tabs will be injected by JavaScript -->
+            </div>
+
+            <!-- Content Area -->
+            <div class="content" id="contentArea">
+                <!-- Page content will be injected by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Dialog -->
+    <div class="modal-mask" id="modalMask">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="modalTitle">新增</h3>
+                <span style="cursor: pointer;" onclick="closeModal()">×</span>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Form will be injected by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveData()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/base-data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
