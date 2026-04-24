@@ -45,7 +45,7 @@ function renderBaseDataPage() {
                     <thead>
                         <tr>
                             <th>字典名称</th>
-                            <th>字典编码</th>
+                            <th width="240">字典编码</th>
                             <th>字典项</th>
                             <th>使用状态</th>
                             <th>操作</th>
