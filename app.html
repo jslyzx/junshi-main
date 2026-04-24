@@ -3,59 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>艾伯维数据看板</title>
+    <title>君实随访中心</title>
+    <!-- Element Plus CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div id="app">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo">艾伯维数据看板</div>
-            <div class="menu" id="sideMenu">
-                <!-- Menu items will be injected by JavaScript -->
-            </div>
-        </div>
+    <div id="app" v-cloak>
+        <el-container class="layout-container">
+            <!-- Sidebar -->
+            <el-aside width="220px" class="layout-aside">
+                <div class="logo">君实随访中心</div>
+                <el-scrollbar>
+                    <el-menu
+                        :default-active="activePath"
+                        class="el-menu-vertical"
+                        @select="handleMenuSelect"
+                        background-color="#304156"
+                        text-color="#bfcbd9"
+                        active-text-color="#409EFF">
+                        
+                        <el-menu-item index="home">
+                            <i class="fa-solid fa-house" style="margin-right: 10px;"></i>
+                            <template #title>首页</template>
+                        </el-menu-item>
 
-        <!-- Main Content -->
-        <div class="main-container">
-            <!-- Header -->
-            <div class="header">
-                <div class="breadcrumb" id="breadcrumb">首页</div>
-                <div class="user-info">
-                    <span>超级管理员</span>
-                    <button class="btn btn-primary" style="padding: 5px 10px;">退出</button>
+                        <el-sub-menu v-for="group in menuConfig" :key="group.id" :index="group.id">
+                            <template #title>
+                                <i :class="['fa-solid', getGroupIcon(group.id)]" style="margin-right: 10px; width: 16px;"></i>
+                                <span>{{ group.title }}</span>
+                            </template>
+                            <el-menu-item v-for="child in group.children" :key="child.id" :index="child.id">
+                                {{ child.title }}
+                            </el-menu-item>
+                        </el-sub-menu>
+                    </el-menu>
+                </el-scrollbar>
+            </el-aside>
+
+            <el-container>
+                <!-- Header -->
+                <el-header height="50px" class="layout-header">
+                    <div class="header-left">
+                        <el-breadcrumb separator="/">
+                            <el-breadcrumb-item>首页</el-breadcrumb-item>
+                            <el-breadcrumb-item v-if="activePath !== 'home'">{{ currentTitle }}</el-breadcrumb-item>
+                        </el-breadcrumb>
+                    </div>
+                    <div class="header-right">
+                        <el-dropdown @command="handleUserCommand">
+                            <span class="user-info-dropdown">
+                                超级管理员 <i class="fa-solid fa-caret-down" style="margin-left: 5px; font-size: 12px;"></i>
+                            </span>
+                            <template #dropdown>
+                                <el-dropdown-menu>
+                                    <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+                                    <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+                                </el-dropdown-menu>
+                            </template>
+                        </el-dropdown>
+                    </div>
+                </el-header>
+
+                <!-- Tags View -->
+                <div class="tags-view-container">
+                    <el-tabs
+                        v-model="activePath"
+                        type="card"
+                        closable
+                        @tab-click="handleTabClick"
+                        @tab-remove="handleTabRemove">
+                        <el-tab-pane
+                            v-for="tag in openTags"
+                            :key="tag.id"
+                            :label="tag.title"
+                            :name="tag.id"
+                            :closable="tag.id !== 'home'"
+                        ></el-tab-pane>
+                    </el-tabs>
                 </div>
-            </div>
 
-            <!-- Tags View -->
-            <div class="tags-view" id="tagsView">
-                <!-- Tabs will be injected by JavaScript -->
-            </div>
+                <!-- Main Content Area -->
+                <el-main class="layout-main">
+                    <div v-loading="loading" class="main-content-wrapper">
+                        <!-- 首页内容 -->
+                        <div v-if="activePath === 'home'" class="page-home">
+                            <div class="home-section">
+                                <div class="home-section-title" style="font-size: 16px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center;">
+                                    <span style="width: 4px; height: 16px; background: #409EFF; border-radius: 2px; margin-right: 10px;"></span>
+                                    任务概览
+                                </div>
+                                <el-row :gutter="20">
+                                    <el-col v-for="item in taskStats" :key="item.label" :span="4.8" style="flex: 0 0 20%; max-width: 20%;">
+                                        <el-card shadow="hover">
+                                            <div style="font-size: 13px; color: #909399; margin-bottom: 10px;">{{ item.label }}</div>
+                                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                <span style="font-size: 24px; font-weight: bold;" :style="{color: item.color}">{{ item.value }}</span>
+                                                <div :style="{background: item.bg, color: item.color}" style="width: 40px; height: 40px; border-radius: 8px; display: flex; alignItems: center; justifyContent: center; fontSize: 18px;">
+                                                    <i :class="['fa-solid', item.icon]"></i>
+                                                </div>
+                                            </div>
+                                        </el-card>
+                                    </el-col>
+                                </el-row>
+                            </div>
+                        </div>
 
-            <!-- Content Area -->
-            <div class="content" id="contentArea">
-                <!-- Page content will be injected by JavaScript -->
-            </div>
-        </div>
+                        <!-- 通用列表页内容 (Vue 模板) -->
+                        <div v-else-if="isCommonPage" class="page-common">
+                            <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; gap: 10px;">
+                                    <el-input v-model="searchKeyword" placeholder="关键词搜索" style="width: 200px" size="small" clearable></el-input>
+                                    <el-button type="primary" size="small">搜索</el-button>
+                                </div>
+                                <div>
+                                    <el-button type="primary" size="small" @click="openAddModal(activePath)">+ 新增</el-button>
+                                    <el-button size="small">导出</el-button>
+                                </div>
+                            </div>
+
+                            <el-table :data="tableData" border stripe style="width: 100%">
+                                <el-table-column v-for="col in currentColumns" :key="col.key" :prop="col.key" :label="col.label"></el-table-column>
+                                <el-table-column label="操作" width="120" fixed="right">
+                                    <template #default="scope">
+                                        <!-- 项目随访特殊下拉菜单 -->
+                                        <el-dropdown v-if="activePath === 'project-followup'" trigger="hover">
+                                            <el-button type="primary" size="small" circle>
+                                                <i class="fa-solid fa-sliders"></i>
+                                            </el-button>
+                                            <template #dropdown>
+                                                <el-dropdown-menu>
+                                                    <el-dropdown-item @click="handleAction('编辑', scope.row)">编辑</el-dropdown-item>
+                                                    <el-dropdown-item @click="handleAction('医院', scope.row)">医院</el-dropdown-item>
+                                                    <el-dropdown-item @click="handleAction('商品', scope.row)">商品</el-dropdown-item>
+                                                    <el-dropdown-item divided style="color: #f56c6c" @click="handleAction('失效', scope.row)">失效</el-dropdown-item>
+                                                </el-dropdown-menu>
+                                            </template>
+                                        </el-dropdown>
+                                        <!-- 其他页面通用操作 -->
+                                        <div v-else>
+                                            <el-button link type="primary" size="small">编辑</el-button>
+                                            <el-button link type="danger" size="small">删除</el-button>
+                                        </div>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                        </div>
+
+                        <!-- 占位符 (其他页面陆续迁移) -->
+                        <div v-else id="content-container"></div>
+                    </div>
+                </el-main>
+            </el-container>
+        </el-container>
+
+        <!-- 通用编辑弹窗 -->
+        <el-dialog v-model="editVisible" :title="editTitle" width="500px">
+            <el-form :model="editForm" label-width="100px">
+                <el-form-item v-for="col in currentColumns" :key="col.key" :label="col.label">
+                    <el-select v-if="col.key === 'status'" v-model="editForm[col.key]" style="width: 100%">
+                        <el-option label="启用" value="启用"></el-option>
+                        <el-option label="停用" value="停用"></el-option>
+                    </el-select>
+                    <el-input v-else v-model="editForm[col.key]"></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="editVisible = false">取消</el-button>
+                <el-button type="primary" @click="handleSave">确认</el-button>
+            </template>
+        </el-dialog>
+
+        <!-- 文章编辑弹窗 -->
+        <el-dialog v-model="articleVisible" :title="articleTitle" width="800px">
+            <el-form :model="articleForm" label-width="80px">
+                <el-row :gutter="20">
+                    <el-col :span="16">
+                        <el-form-item label="文章标题"><el-input v-model="articleForm.title"></el-input></el-form-item>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-form-item label="分类">
+                            <el-select v-model="articleForm.category" style="width: 100%">
+                                <el-option v-for="cat in currentCategories" :key="cat" :label="cat" :value="cat"></el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-form-item label="文章正文">
+                    <el-input type="textarea" :rows="12" v-model="articleForm.content"></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="articleVisible = false">取消</el-button>
+                <el-button type="primary" @click="handleArticleSave">确认</el-button>
+            </template>
+        </el-dialog>
     </div>
 
-    <!-- Modal Dialog -->
-    <div class="modal-mask" id="modalMask">
-        <div class="modal-container">
-            <div class="modal-header">
-                <h3 id="modalTitle">新增</h3>
-                <span style="cursor: pointer;" onclick="closeModal()">×</span>
-            </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Form will be injected by JavaScript -->
-            </div>
-            <div class="modal-footer">
-                <button class="btn" onclick="closeModal()">取消</button>
-                <button class="btn btn-primary" onclick="saveData()">确认</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- Vue 3 and Element Plus JS -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus"></script>
+    
     <script src="js/data.js"></script>
     <script src="js/base-data.js"></script>
     <script src="js/app.js"></script>
