@@ -118,26 +118,52 @@ const app = createApp({
             navigate(tabId, '执行随访');
         };
 
-        // 字典数据 (迁移自 base-data.js)
+        // 字典数据
         const dictGroups = ref([
             { name: '适应性子项', code: 'adaptability' },
             { name: '身体状况', code: 'health' },
             { name: '任务逾期原因', code: 'overdue' },
             { name: '渠道类型', code: 'channel' },
             { name: '性格', code: 'character' },
-            { name: '商保类型', code: 'insurance' },
+            { name: '商保类型', code: 'commercialInsuranceType' },
             { name: '依从性子项', code: 'compliance' },
-            { name: '家庭条件', code: 'family' }
+            { name: '家庭条件', code: 'condition' }
         ]);
         const activeDictGroup = ref('适应性子项');
-        const dictItems = ref([
+        
+        const ALL_DICT_ITEMS = [
             { name: '适应性子项', code: 'adaptability', item: '不该进行单药治疗的实用性...', status: '启用' },
             { name: '适应性子项', code: 'adaptability', item: '更适合进行非药物治疗的疾...', status: '启用' },
             { name: '适应性子项', code: 'adaptability', item: '用一种药物治疗其他药物引...', status: '启用' },
             { name: '适应性子项', code: 'adaptability', item: '需要启动药物治疗的实际情况', status: '启用' },
             { name: '适应性子项', code: 'adaptability', item: '需要进行预防用药来降低新...', status: '启用' },
-            { name: '适应性子项', code: 'adaptability', item: '需要增加药物以获得协同或...', status: '启用' }
-        ]);
+            { name: '身体状况', code: 'health', item: '身体健康', status: '启用' },
+            { name: '身体状况', code: 'health', item: '患有高血压', status: '启用' },
+            { name: '身体状况', code: 'health', item: '患有糖尿病', status: '启用' },
+            { name: '任务逾期原因', code: 'overdue', item: '患者出差', status: '启用' },
+            { name: '任务逾期原因', code: 'overdue', item: '患者住院', status: '启用' },
+            { name: '渠道类型', code: 'channel', item: '线下药房', status: '启用' },
+            { name: '渠道类型', code: 'channel', item: '电商平台', status: '启用' },
+            { name: '性格', code: 'character', item: '外向', status: '启用' },
+            { name: '性格', code: 'character', item: '内向', status: '启用' },
+            { name: '商保类型', code: 'commercialInsuranceType', item: '职工商保', status: '启用' },
+            { name: '商保类型', code: 'commercialInsuranceType', item: '商业商保', status: '启用' },
+            { name: '依从性子项', code: 'compliance', item: '患者没有充分理解用药指导', status: '启用' },
+            { name: '依从性子项', code: 'compliance', item: '患者更倾向于不使用药物', status: '启用' },
+            { name: '依从性子项', code: 'compliance', item: '患者忘记服药', status: '启用' },
+            { name: '依从性子项', code: 'compliance', item: '药物对患者来说太贵', status: '启用' },
+            { name: '依从性子项', code: 'compliance', item: '患者不能自己正确吞咽或者...', status: '启用' },
+            { name: '依从性子项', code: 'compliance', item: '患者买不到药物', status: '启用' },
+            { name: '家庭条件', code: 'condition', item: '家庭富裕', status: '启用' },
+            { name: '家庭条件', code: 'condition', item: '家庭一般', status: '启用' },
+            { name: '家庭条件', code: 'condition', item: '家庭困难', status: '启用' }
+        ];
+
+
+        const dictItems = computed(() => {
+            return ALL_DICT_ITEMS.filter(item => item.name === activeDictGroup.value);
+        });
+
 
         // 导航处理
         const handleMenuSelect = (index) => {
