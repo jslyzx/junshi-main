@@ -20,7 +20,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .layout-main { background-color: #f0f2f5; padding: 15px; }
 .main-content-wrapper { background: #fff; min-height: 100%; border-radius: 4px; padding: 20px; box-shadow: 0 1px 4px rgba(0,21,41,.08); }
 
-.user-info-dropdown { cursor: pointer; color: #606266; font-weight: 500; }
+.dict-group-item:hover { background-color: #f5f7fa; color: var(--primary-color); }
+.dict-group-item.active { background-color: #ecf5ff; color: var(--primary-color); font-weight: bold; border-right: 2px solid var(--primary-color); }
 
 /* Sidebar Menu Tweaks */
 .el-menu { border-right: none !important; }

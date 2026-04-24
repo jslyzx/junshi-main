@@ -126,14 +126,13 @@ const MOCK_DATA = {
     // 项目管理
     'project-followup': {
         columns: [
-            { label: '项目编号', key: 'code' },
             { label: '项目名', key: 'name' },
             { label: '状态', key: 'status' },
             { label: '创建人', key: 'creator' },
             { label: '创建时间', key: 'date' }
         ],
         data: [
-            { id: 1, code: 'JS_001', name: '君实随访项目', status: '启用', creator: '超级管理员', date: '2026-03-24' }
+            { id: 1, name: '君实随访项目', status: '启用', creator: '超级管理员', date: '2026-03-24' }
         ]
     },
     'project-tag': {

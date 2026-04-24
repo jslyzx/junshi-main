@@ -24,6 +24,31 @@ const app = createApp({
             return activePath.value.startsWith('article-');
         });
 
+        const isBaseDataPage = computed(() => {
+            return activePath.value === 'base-data';
+        });
+
+        // 字典数据 (迁移自 base-data.js)
+        const dictGroups = ref([
+            { name: '适应性子项', code: 'adaptability' },
+            { name: '身体状况', code: 'health' },
+            { name: '任务逾期原因', code: 'overdue' },
+            { name: '渠道类型', code: 'channel' },
+            { name: '性格', code: 'character' },
+            { name: '商保类型', code: 'insurance' },
+            { name: '依从性子项', code: 'compliance' },
+            { name: '家庭条件', code: 'family' }
+        ]);
+        const activeDictGroup = ref('适应性子项');
+        const dictItems = ref([
+            { name: '适应性子项', code: 'adaptability', item: '不该进行单药治疗的实用性...', status: '启用' },
+            { name: '适应性子项', code: 'adaptability', item: '更适合进行非药物治疗的疾...', status: '启用' },
+            { name: '适应性子项', code: 'adaptability', item: '用一种药物治疗其他药物引...', status: '启用' },
+            { name: '适应性子项', code: 'adaptability', item: '需要启动药物治疗的实际情况', status: '启用' },
+            { name: '适应性子项', code: 'adaptability', item: '需要进行预防用药来降低新...', status: '启用' },
+            { name: '适应性子项', code: 'adaptability', item: '需要增加药物以获得协同或...', status: '启用' }
+        ]);
+
         // 导航处理
         const handleMenuSelect = (index) => {
             let title = '';
@@ -166,6 +191,9 @@ const app = createApp({
                 
                 if (activePath.value.startsWith('article-')) {
                     renderArticlePageVue(container, activePath.value);
+                } else if (isBaseDataPage.value) {
+                    // 基础数据页面通过 Vue 模板渲染，不再使用 innerHTML
+                    container.innerHTML = '';
                 } else {
                     container.innerHTML = '';
                 }
@@ -185,7 +213,8 @@ const app = createApp({
             articleVisible, articleTitle, articleForm, currentCategories,
             handleSave, handleArticleSave,
             taskStats, tableData, searchKeyword, handleAction,
-            isCommonPage, isArticlePage
+            isCommonPage, isArticlePage, isBaseDataPage,
+            dictGroups, activeDictGroup, dictItems
         };
     }
 });
