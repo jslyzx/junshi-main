@@ -298,13 +298,43 @@
                     </el-col>
                 </el-row>
                 <el-form-item label="文章正文">
-                        <el-input type="textarea" :rows="12" v-model="articleForm.content"></el-input>
+                    <div style="border: 1px solid #dcdfe6; border-radius: 4px; width: 100%;">
+                        <div style="background: #f5f7fa; padding: 8px 12px; border-bottom: 1px solid #dcdfe6; display: flex; gap: 15px; color: #606266; border-radius: 4px 4px 0 0;">
+                            <i class="fa-solid fa-bold" style="cursor:pointer"></i>
+                            <i class="fa-solid fa-italic" style="cursor:pointer"></i>
+                            <i class="fa-solid fa-underline" style="cursor:pointer"></i>
+                            <i class="fa-solid fa-heading" style="cursor:pointer"></i>
+                            <i class="fa-solid fa-align-left" style="cursor:pointer"></i>
+                            <i class="fa-solid fa-align-center" style="cursor:pointer"></i>
+                            <i class="fa-solid fa-list-ul" style="cursor:pointer"></i>
+                            <i class="fa-solid fa-list-ol" style="cursor:pointer"></i>
+                            <i class="fa-solid fa-link" style="cursor:pointer"></i>
+                            <i class="fa-solid fa-image" style="cursor:pointer"></i>
+                        </div>
+                        <el-input type="textarea" :rows="12" v-model="articleForm.content" placeholder="请输入图文并茂的文章内容..." style="--el-input-border: none; --el-input-border-color: transparent; --el-input-hover-border: none; --el-input-hover-border-color: transparent; --el-input-focus-border: none; --el-input-focus-border-color: transparent; box-shadow: none;"></el-input>
+                    </div>
                 </el-form-item>
             </el-form>
             <template #footer>
                 <el-button @click="articleVisible = false">取消</el-button>
-                <el-button type="primary" @click="articleVisible = false">保存为草稿</el-button>
-                <el-button type="success" @click="articleVisible = false">发布文章</el-button>
+                <el-button type="primary" @click="handleArticleSave('草稿')">保存为草稿</el-button>
+                <el-button type="success" @click="handleArticleSave('已发布')">发布文章</el-button>
+            </template>
+        </el-dialog>
+
+        <!-- 文章预览弹窗 -->
+        <el-dialog v-model="articlePreviewVisible" :title="previewArticleData.title" width="600px" top="5vh">
+            <div style="padding: 20px; background: #fff;">
+                <div style="font-size: 22px; font-weight: bold; color: #303133; margin-bottom: 15px; text-align: center;">{{ previewArticleData.title }}</div>
+                <div style="display: flex; justify-content: center; gap: 20px; color: #909399; font-size: 13px; margin-bottom: 30px; border-bottom: 1px solid #ebeef5; padding-bottom: 15px;">
+                    <span><i class="fa-solid fa-folder"></i> {{ previewArticleData.category }}</span>
+                    <span><i class="fa-solid fa-user"></i> {{ previewArticleData.author }}</span>
+                    <span><i class="fa-solid fa-calendar"></i> {{ previewArticleData.publishDate || '未发布' }}</span>
+                </div>
+                <div style="font-size: 15px; color: #606266; line-height: 1.8; white-space: pre-wrap;" v-html="previewArticleData.content"></div>
+            </div>
+            <template #footer>
+                <el-button type="primary" @click="articlePreviewVisible = false">关闭预览</el-button>
             </template>
         </el-dialog>
 

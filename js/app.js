@@ -309,8 +309,11 @@ const app = createApp({
 
         const articleVisible = ref(false);
         const articleTitle = ref('新增文章');
-        const articleForm = reactive({ title: '', category: '', author: '', content: '', status: '草稿' });
+        const articleForm = reactive({ id: null, title: '', category: '', author: '', content: '', status: '草稿' });
         const currentCategories = computed(() => ARTICLE_CATEGORIES[activePath.value] || []);
+        
+        const articlePreviewVisible = ref(false);
+        const previewArticleData = ref({});
 
         // 弹窗操作方法
         const openAddModal = (id) => {
@@ -334,10 +337,37 @@ const app = createApp({
 
         const openArticleModal = () => {
             articleTitle.value = '新增文章';
-            Object.assign(articleForm, { title: '', category: currentCategories.value[0], author: '管理员', content: '', status: '草稿' });
+            Object.assign(articleForm, { id: null, title: '', category: currentCategories.value[0], author: '管理员', content: '', status: '草稿' });
             articleVisible.value = true;
         };
         window.openArticleModal = openArticleModal;
+
+        const handleArticleAction = (type, id) => {
+            const articles = ARTICLE_DATA[activePath.value] || [];
+            const article = articles.find(a => String(a.id) === String(id));
+            if (!article) return;
+
+            if (type === '预览') {
+                previewArticleData.value = { ...article };
+                articlePreviewVisible.value = true;
+            } else if (type === '编辑') {
+                articleTitle.value = '编辑文章';
+                Object.assign(articleForm, article);
+                articleVisible.value = true;
+            } else if (type === '删除') {
+                ElementPlus.ElMessageBox.confirm(`确定要删除文章【${article.title}】吗？`, '警告', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    const index = articles.findIndex(a => String(a.id) === String(id));
+                    if (index > -1) articles.splice(index, 1);
+                    ElementPlus.ElMessage.success('删除成功');
+                    renderCurrentPage();
+                });
+            }
+        };
+        window.handleArticleAction = handleArticleAction;
 
         const handleSave = () => {
             if (!editFormRef.value) {
@@ -367,11 +397,18 @@ const app = createApp({
             renderCurrentPage();
         };
 
-        const handleArticleSave = () => {
+        const handleArticleSave = (status) => {
             const data = ARTICLE_DATA[activePath.value];
-            data.unshift({ ...articleForm, id: Date.now(), views: 0, publishDate: new Date().toISOString().split('T')[0] });
+            if (articleForm.id) {
+                const index = data.findIndex(a => a.id === articleForm.id);
+                if (index > -1) {
+                    data[index] = { ...articleForm, status };
+                }
+            } else {
+                data.unshift({ ...articleForm, id: Date.now(), views: 0, publishDate: new Date().toISOString().split('T')[0], status });
+            }
             articleVisible.value = false;
-            ElementPlus.ElMessage.success('文章发布成功');
+            ElementPlus.ElMessage.success(status === '已发布' ? '文章发布成功' : '草稿保存成功');
             renderCurrentPage();
         };
 
@@ -412,6 +449,7 @@ const app = createApp({
             currentTitle, handleMenuSelect, handleTabClick, handleTabRemove, getGroupIcon, handleUserCommand,
             editVisible, editTitle, editForm, currentColumns, editFormRef,
             articleVisible, articleTitle, articleForm, currentCategories,
+            articlePreviewVisible, previewArticleData, handleArticleAction,
             hospitalVisible, hospitalSearchKeyword, hospitalData, hospitalSelection, hospitalPage, hospitalPageSize, hospitalTotal,
             handleHospitalSearch, handleHospitalReset, handleHospitalSelectionChange, handleHospitalAdd, handleHospitalDelete,
             productVisible, productData, productSelection, productPage, productPageSize, productTotal,
@@ -610,9 +648,9 @@ function renderArticlePageVue(container, id) {
                                 <td class="el-table__cell"><div class="cell">${art.views || 0}</div></td>
                                 <td class="el-table__cell">
                                     <div class="cell">
-                                        <button class="el-button el-button--text el-button--small" style="color: #409eff; padding: 0;">预览</button>
-                                        <button class="el-button el-button--text el-button--small" style="color: #409eff; padding: 0; margin-left: 10px;">编辑</button>
-                                        <button class="el-button el-button--text el-button--small" style="color: #f56c6c; padding: 0; margin-left: 10px;">删除</button>
+                                        <button class="el-button el-button--text el-button--small" style="color: #409eff; padding: 0;" onclick="handleArticleAction('预览', '${art.id}')">预览</button>
+                                        <button class="el-button el-button--text el-button--small" style="color: #409eff; padding: 0; margin-left: 10px;" onclick="handleArticleAction('编辑', '${art.id}')">编辑</button>
+                                        <button class="el-button el-button--text el-button--small" style="color: #f56c6c; padding: 0; margin-left: 10px;" onclick="handleArticleAction('删除', '${art.id}')">删除</button>
                                     </div>
                                 </td>
                             </tr>
