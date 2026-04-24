@@ -19,10 +19,7 @@
                     <el-menu
                         :default-active="activePath"
                         class="el-menu-vertical"
-                        @select="handleMenuSelect"
-                        background-color="#304156"
-                        text-color="#bfcbd9"
-                        active-text-color="#409EFF">
+                        @select="handleMenuSelect">
                         
                         <el-menu-item index="home">
                             <i class="fa-solid fa-house" style="margin-right: 10px;"></i>
@@ -112,43 +109,65 @@
 
                         <!-- 通用列表页内容 (Vue 模板) -->
                         <div v-else-if="isCommonPage" class="page-common">
-                            <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-                                <div style="display: flex; gap: 10px;">
-                                    <el-input v-model="searchKeyword" placeholder="关键词搜索" style="width: 200px" size="small" clearable></el-input>
-                                    <el-button type="primary" size="small">搜索</el-button>
+                            <!-- 搜索区域 -->
+                            <div class="search-area" style="background: #fff; padding: 15px 20px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #ebeef5; display: flex; align-items: center; gap: 15px;">
+                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;">
+                                    <span style="margin-right: 10px; font-weight: 500;">项目名称</span>
+                                    <el-input v-model="searchKeyword" placeholder="搜索项目名称" style="width: 240px" clearable></el-input>
                                 </div>
-                                <div>
-                                    <el-button type="primary" size="small" @click="openAddModal(activePath)">+ 新增</el-button>
-                                    <el-button size="small">导出</el-button>
-                                </div>
+                                <el-button type="primary">搜索</el-button>
+                                <el-button>重置</el-button>
                             </div>
 
-                            <el-table :data="tableData" border stripe style="width: 100%">
-                                <el-table-column v-for="col in currentColumns" :key="col.key" :prop="col.key" :label="col.label"></el-table-column>
-                                <el-table-column label="操作" width="120" fixed="right">
-                                    <template #default="scope">
-                                        <!-- 项目随访特殊下拉菜单 -->
-                                        <el-dropdown v-if="activePath === 'project-followup'" trigger="hover">
-                                            <el-button type="primary" size="small" circle>
-                                                <i class="fa-solid fa-sliders"></i>
-                                            </el-button>
-                                            <template #dropdown>
-                                                <el-dropdown-menu>
-                                                    <el-dropdown-item @click="handleAction('编辑', scope.row)">编辑</el-dropdown-item>
-                                                    <el-dropdown-item @click="handleAction('医院', scope.row)">医院</el-dropdown-item>
-                                                    <el-dropdown-item @click="handleAction('商品', scope.row)">商品</el-dropdown-item>
-                                                    <el-dropdown-item divided style="color: #f56c6c" @click="handleAction('失效', scope.row)">失效</el-dropdown-item>
-                                                </el-dropdown-menu>
-                                            </template>
-                                        </el-dropdown>
-                                        <!-- 其他页面通用操作 -->
-                                        <div v-else>
-                                            <el-button link type="primary" size="small">编辑</el-button>
-                                            <el-button link type="danger" size="small">删除</el-button>
-                                        </div>
-                                    </template>
-                                </el-table-column>
-                            </el-table>
+                            <!-- 操作区域和表格 -->
+                            <div class="table-area" style="background: #fff; padding: 15px 20px; border-radius: 4px; border: 1px solid #ebeef5;">
+                                <div style="margin-bottom: 15px; display: flex; justify-content: flex-end; align-items: center;">
+                                    <el-button type="primary" @click="openAddModal(activePath)">新增</el-button>
+                                    <div style="margin-left: 15px; display: flex; gap: 15px; color: #606266; font-size: 16px; cursor: pointer;">
+                                        <i class="fa-solid fa-arrows-rotate" title="刷新"></i>
+                                        <i class="fa-solid fa-list-ul" title="列设置"></i>
+                                        <i class="fa-solid fa-gear" title="设置"></i>
+                                    </div>
+                                </div>
+
+                                <el-table :data="tableData" style="width: 100%" :header-cell-style="{background:'#f8f8f9', color:'#515a6e', fontWeight: 'bold'}" border>
+                                    <el-table-column v-for="col in currentColumns" :key="col.key" :prop="col.key" :label="col.label" sortable></el-table-column>
+                                    <el-table-column label="操作" width="100" fixed="right" align="center">
+                                        <template #default="scope">
+                                            <!-- 项目随访特殊下拉菜单 -->
+                                            <el-dropdown v-if="activePath === 'project-followup'" trigger="hover">
+                                                <span class="el-dropdown-link" style="color: #409eff; cursor: pointer; outline: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px;">
+                                                    <i class="fa-solid fa-sliders" style="font-size: 14px;"></i>
+                                                </span>
+                                                <template #dropdown>
+                                                    <el-dropdown-menu>
+                                                        <el-dropdown-item @click="handleAction('编辑', scope.row)">编辑</el-dropdown-item>
+                                                        <el-dropdown-item @click="handleAction('医院', scope.row)">医院</el-dropdown-item>
+                                                        <el-dropdown-item @click="handleAction('商品', scope.row)">商品</el-dropdown-item>
+                                                        <el-dropdown-item @click="handleAction('表单', scope.row)">表单</el-dropdown-item>
+                                                        <el-dropdown-item @click="handleAction('规则', scope.row)">规则</el-dropdown-item>
+                                                        <el-dropdown-item divided style="color: #f56c6c" @click="handleAction('停用', scope.row)">停用</el-dropdown-item>
+                                                    </el-dropdown-menu>
+                                                </template>
+                                            </el-dropdown>
+                                            <!-- 其他页面通用操作 -->
+                                            <div v-else>
+                                                <el-dropdown trigger="hover">
+                                                    <span class="el-dropdown-link" style="color: #409eff; cursor: pointer; outline: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px;">
+                                                        <i class="fa-solid fa-sliders" style="font-size: 14px;"></i>
+                                                    </span>
+                                                    <template #dropdown>
+                                                        <el-dropdown-menu>
+                                                            <el-dropdown-item @click="handleAction('编辑', scope.row)">编辑</el-dropdown-item>
+                                                            <el-dropdown-item divided style="color: #f56c6c" @click="handleAction('删除', scope.row)">删除</el-dropdown-item>
+                                                        </el-dropdown-menu>
+                                                    </template>
+                                                </el-dropdown>
+                                            </div>
+                                        </template>
+                                    </el-table-column>
+                                </el-table>
+                            </div>
                         </div>
 
                         <!-- 基础数据页面 (Vue 模板) -->
@@ -201,14 +220,24 @@
 
         <!-- 通用编辑弹窗 -->
         <el-dialog v-model="editVisible" :title="editTitle" width="500px">
-            <el-form :model="editForm" label-width="100px">
-                <el-form-item v-for="col in currentColumns" :key="col.key" :label="col.label">
-                    <el-select v-if="col.key === 'status'" v-model="editForm[col.key]" style="width: 100%">
-                        <el-option label="启用" value="启用"></el-option>
-                        <el-option label="停用" value="停用"></el-option>
-                    </el-select>
-                    <el-input v-else v-model="editForm[col.key]"></el-input>
-                </el-form-item>
+            <el-form :model="editForm" label-width="100px" ref="editFormRef">
+                <template v-if="activePath === 'project-followup'">
+                    <el-form-item label="项目名称" prop="name" :rules="[{ required: true, message: '项目名称不能为空', trigger: 'blur' }]">
+                        <el-input v-model="editForm.name" placeholder="请输入项目名称"></el-input>
+                    </el-form-item>
+                    <el-form-item label="备注" prop="remark">
+                        <el-input type="textarea" v-model="editForm.remark" placeholder="请输入备注"></el-input>
+                    </el-form-item>
+                </template>
+                <template v-else>
+                    <el-form-item v-for="col in currentColumns" :key="col.key" :label="col.label">
+                        <el-select v-if="col.key === 'status'" v-model="editForm[col.key]" style="width: 100%">
+                            <el-option label="启用" value="启用"></el-option>
+                            <el-option label="停用" value="停用"></el-option>
+                        </el-select>
+                        <el-input v-else v-model="editForm[col.key]"></el-input>
+                    </el-form-item>
+                </template>
             </el-form>
             <template #footer>
                 <el-button @click="editVisible = false">取消</el-button>

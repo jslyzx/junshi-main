@@ -1,33 +1,69 @@
 :root {
     --primary-color: #409eff;
-    --sidebar-bg: #304156;
-    --sidebar-text: #bfcbd9;
+    --sidebar-bg: #001529; /* 深蓝色背景 */
+    --sidebar-text: rgba(255, 255, 255, 0.65);
+    --sidebar-active-text: #ffffff;
+    --sidebar-submenu-bg: #000000; /* 纯黑，拉开极致对比度 */
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif; background-color: #f0f2f5; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif; background-color: #f0f2f5; overflow: hidden; /* 防止出现整个页面的双滚动条 */ }
 
 [v-cloak] { display: none; }
 
-#app { height: 100vh; }
-.layout-container { height: 100%; }
-.layout-aside { background-color: var(--sidebar-bg); }
-.logo { height: 50px; line-height: 50px; padding: 0 20px; color: #fff; font-size: 16px; font-weight: bold; background: #2b2f3a; white-space: nowrap; overflow: hidden; }
-.layout-header { background: #fff; border-bottom: 1px solid #dcdfe6; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 1px 4px rgba(0,21,41,.08); z-index: 10; }
-.tags-view-container { background: #fff; border-bottom: 1px solid #d8dce5; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.12); height: 40px; padding: 0 10px; display: flex; align-items: center; }
+#app { height: 100vh; overflow: hidden; }
+.layout-container { height: 100vh; display: flex; }
+.layout-aside { background-color: var(--sidebar-bg); display: flex; flex-direction: column; }
+.logo { height: 50px; line-height: 50px; padding: 0 20px; color: #fff; font-size: 16px; font-weight: bold; background: #002140; white-space: nowrap; overflow: hidden; }
+.layout-header { background: #fff; border-bottom: 1px solid #dcdfe6; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 1px 4px rgba(0,21,41,.08); z-index: 10; flex-shrink: 0; }
+.tags-view-container { background: #fff; border-bottom: 1px solid #d8dce5; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.12); height: 40px; padding: 0 10px; display: flex; align-items: center; flex-shrink: 0; }
 .tags-view-container .el-tabs { height: 34px; border: none; }
 .tags-view-container .el-tabs__header { border: none; margin: 0; }
-.layout-main { background-color: #f0f2f5; padding: 15px; }
+.layout-main { background-color: #f0f2f5; padding: 15px; overflow-y: auto; /* 主区域单独滚动 */ }
 .main-content-wrapper { background: #fff; min-height: 100%; border-radius: 4px; padding: 20px; box-shadow: 0 1px 4px rgba(0,21,41,.08); }
 
 .dict-group-item:hover { background-color: #f5f7fa; color: var(--primary-color); }
 .dict-group-item.active { background-color: #ecf5ff; color: var(--primary-color); font-weight: bold; border-right: 2px solid var(--primary-color); }
 
 /* Sidebar Menu Tweaks */
-.el-menu { border-right: none !important; }
+.el-menu-vertical {
+    --el-menu-bg-color: var(--sidebar-bg) !important;
+    --el-menu-text-color: var(--sidebar-text) !important;
+    --el-menu-hover-text-color: var(--sidebar-active-text) !important;
+    --el-menu-hover-bg-color: transparent !important;
+    --el-menu-active-color: #fff !important;
+    border-right: none !important;
+    background-color: var(--el-menu-bg-color) !important;
+}
+
+.el-menu-vertical .el-sub-menu__title:hover {
+    color: var(--sidebar-active-text) !important;
+}
+
+/* 强制覆盖二级菜单背景 */
+.el-menu-vertical .el-menu--inline,
+.el-menu-vertical .el-menu--inline .el-menu-item {
+    background-color: var(--sidebar-submenu-bg) !important;
+    --el-menu-bg-color: var(--sidebar-submenu-bg) !important;
+}
+
+/* 选中项高亮 */
+.el-menu-vertical .el-menu-item.is-active {
+    background-color: var(--primary-color) !important;
+    color: #fff !important;
+}
+
+/* 悬停变白 */
+.el-menu-vertical .el-menu-item:hover {
+    color: var(--sidebar-active-text) !important;
+}
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #999; }
+
+/* 隐藏侧边栏的默认滚动条 */
+.layout-aside .el-scrollbar__wrap { overflow-x: hidden; }
+.layout-aside .el-scrollbar__bar { display: none !important; }

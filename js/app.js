@@ -119,7 +119,9 @@ const app = createApp({
 
         // 操作逻辑
         const handleAction = (type, row) => {
-            if (type === '失效') {
+            if (type === '编辑') {
+                openEditModal(row);
+            } else if (type === '失效') {
                 ElementPlus.ElMessageBox.confirm(`确定要失效项目【${row.name}】吗？`, '警告', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
@@ -133,10 +135,10 @@ const app = createApp({
             }
         };
 
-        // 弹窗相关状态
         const editVisible = ref(false);
         const editTitle = ref('新增');
         const editForm = ref({});
+        const editFormRef = ref(null);
         const currentColumns = computed(() => (MOCK_DATA[activePath.value] || {}).columns || []);
 
         const articleVisible = ref(false);
@@ -145,24 +147,49 @@ const app = createApp({
         const currentCategories = computed(() => ARTICLE_CATEGORIES[activePath.value] || []);
 
         // 弹窗操作方法
-        window.openAddModal = (id) => {
+        const openAddModal = (id) => {
             editTitle.value = '新增';
-            editForm.value = {};
-            currentColumns.value.forEach(col => editForm.value[col.key] = '');
+            editForm.value = { status: '启用', creator: '超级管理员', date: new Date().toISOString().split('T')[0] };
+            // 为项目随访初始化特定字段
+            if (id === 'project-followup') {
+                editForm.value.name = '';
+                editForm.value.remark = '';
+            } else {
+                currentColumns.value.forEach(col => editForm.value[col.key] = '');
+            }
             editVisible.value = true;
         };
 
-        window.openArticleModal = () => {
+        const openEditModal = (row) => {
+            editTitle.value = '编辑';
+            editForm.value = { ...row };
+            editVisible.value = true;
+        };
+
+        const openArticleModal = () => {
             articleTitle.value = '新增文章';
             Object.assign(articleForm, { title: '', category: currentCategories.value[0], author: '管理员', content: '', status: '草稿' });
             articleVisible.value = true;
         };
+        window.openArticleModal = openArticleModal;
 
         const handleSave = () => {
+            // 校验逻辑
+            if (activePath.value === 'project-followup' && !editForm.value.name) {
+                ElementPlus.ElMessage.error('项目名称不能为空');
+                return;
+            }
+
             const data = MOCK_DATA[activePath.value].data;
-            data.unshift({ ...editForm.value, id: Date.now() });
+            if (editTitle.value === '新增') {
+                data.unshift({ ...editForm.value, id: Date.now() });
+                ElementPlus.ElMessage.success('新增成功');
+            } else {
+                const index = data.findIndex(item => item.id === editForm.value.id);
+                if (index > -1) data[index] = { ...editForm.value };
+                ElementPlus.ElMessage.success('保存成功');
+            }
             editVisible.value = false;
-            ElementPlus.ElMessage.success('新增成功');
             renderCurrentPage();
         };
 
@@ -209,9 +236,9 @@ const app = createApp({
         return {
             menuConfig, activePath, openTags, loading,
             currentTitle, handleMenuSelect, handleTabClick, handleTabRemove, getGroupIcon, handleUserCommand,
-            editVisible, editTitle, editForm, currentColumns,
+            editVisible, editTitle, editForm, currentColumns, editFormRef,
             articleVisible, articleTitle, articleForm, currentCategories,
-            handleSave, handleArticleSave,
+            handleSave, handleArticleSave, openAddModal, openEditModal, openArticleModal,
             taskStats, tableData, searchKeyword, handleAction,
             isCommonPage, isArticlePage, isBaseDataPage,
             dictGroups, activeDictGroup, dictItems

@@ -126,13 +126,16 @@ const MOCK_DATA = {
     // 项目管理
     'project-followup': {
         columns: [
-            { label: '项目名', key: 'name' },
+            { label: '项目名称', key: 'name' },
             { label: '状态', key: 'status' },
+            { label: '备注', key: 'remark' },
             { label: '创建人', key: 'creator' },
-            { label: '创建时间', key: 'date' }
+            { label: '创建时间', key: 'date' },
+            { label: '更新人', key: 'updater' },
+            { label: '更新时间', key: 'updateTime' }
         ],
         data: [
-            { id: 1, name: '君实随访项目', status: '启用', creator: '超级管理员', date: '2026-03-24' }
+            { id: 1, name: '艾伯维随访', status: '启用', remark: '', creator: '超级管理员', date: '2024-11-29 14:29:03', updater: '超级管理员', updateTime: '2024-11-29 14:29:10' }
         ]
     },
     'project-tag': {
