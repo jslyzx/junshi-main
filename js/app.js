@@ -28,6 +28,96 @@ const app = createApp({
             return activePath.value === 'base-data';
         });
 
+        const isExecutePage = computed(() => {
+            return activePath.value.startsWith('execute-task-');
+        });
+
+        const isPatientDetailPage = computed(() => {
+            return activePath.value.startsWith('patient-detail-');
+        });
+
+        // 患者详情页面数据
+        const patientDetailData = ref({});
+        const openPatientDetail = (row) => {
+            const searchName = row.name || row.patientName;
+            const searchId = row.patientId;
+            const patientList = MOCK_DATA['patient-list']?.data || [];
+            
+            // 严谨查找：优先匹配 patientId (UUID)，如果没有则匹配姓名
+            const fullInfo = patientList.find(p => p.patientId === searchId) || 
+                             patientList.find(p => p.name === searchName) || 
+                             row;
+            
+            patientDetailData.value = { 
+                ...fullInfo,
+                name: fullInfo.name || searchName,
+                // 确保随访任务中的特定字段也能带过去（如果是回退到 row）
+                patientId: fullInfo.patientId || searchId 
+            };
+            const tabId = 'patient-detail-' + (fullInfo.patientId || Date.now());
+            navigate(tabId, patientDetailData.value.name + ' 详情信息');
+        };
+
+
+
+
+        // 执行随访页面状态
+        const executeTaskData = ref({});
+        const executeActiveTab = ref('history');
+        const executePersonalExpanded = ref(false);
+        const executeFormSections = ref([
+            { id: 'tips', title: '随访重点提示', isParent: true },
+            { id: 'basic', title: '随访基本情况', isParent: true },
+            { id: 'contact', title: '实际联系方式', isChild: true },
+            { id: 'phone', title: '联系电话', isChild: true },
+            { id: 'success', title: '是否联系成功', isChild: true },
+            { id: 'indication', title: '项目适应症', isChild: true },
+            { id: 'questionnaire', title: '君实随访问答', isParent: true },
+            { id: 'medicine', title: '用药方式', isChild: true },
+            { id: 'summary', title: '随访小结', isChild: true },
+            { id: 'care', title: '患者关怀随访', isParent: true },
+            { id: 'doctor', title: '患者关于主治医师...', isParent: true },
+            { id: 'issues', title: '关于以上相关问题...', isParent: true },
+            { id: 'user', title: '用户反馈', isParent: true }
+        ]);
+        const executeActiveSection = ref('tips');
+        const executeProgress = ref(8);
+
+        const scrollToSection = (sectionId) => {
+            executeActiveSection.value = sectionId;
+            const el = document.getElementById('section-' + sectionId);
+            const container = document.getElementById('execute-form-scroll');
+            if (el && container) {
+                container.scrollTo({ top: el.offsetTop - container.offsetTop, behavior: 'smooth' });
+            }
+        };
+
+        const handleFormScroll = (e) => {
+            const container = e.target;
+            const scrollTop = container.scrollTop;
+            const scrollHeight = container.scrollHeight - container.clientHeight;
+            executeProgress.value = scrollHeight > 0 ? Math.round((scrollTop / scrollHeight) * 100) : 0;
+            // 找到当前可见的 section
+            const sections = executeFormSections.value;
+            for (let i = sections.length - 1; i >= 0; i--) {
+                const el = document.getElementById('section-' + sections[i].id);
+                if (el && el.offsetTop - container.offsetTop <= scrollTop + 100) {
+                    executeActiveSection.value = sections[i].id;
+                    break;
+                }
+            }
+        };
+
+        const handleExecuteTask = (row) => {
+            executeTaskData.value = { ...row };
+            executeActiveTab.value = 'history';
+            executePersonalExpanded.value = false;
+            executeProgress.value = 8;
+            executeActiveSection.value = 'tips';
+            const tabId = 'execute-task-' + row.id;
+            navigate(tabId, '执行随访');
+        };
+
         // 字典数据 (迁移自 base-data.js)
         const dictGroups = ref([
             { name: '适应性子项', code: 'adaptability' },
@@ -96,7 +186,9 @@ const app = createApp({
                 'staff': 'fa-user-group',
                 'config': 'fa-gears',
                 'project': 'fa-folder-tree',
-                'article': 'fa-file-lines'
+                'article': 'fa-file-lines',
+                'patient': 'fa-hospital-user',
+                'followup': 'fa-calendar-check'
             };
             return icons[id] || 'fa-folder';
         };
@@ -107,12 +199,64 @@ const app = createApp({
 
         // 数据状态
         const taskStats = ref([
-            { label: '今日任务', value: 0, icon: 'fa-clipboard-list', color: '#409EFF', bg: 'rgba(64,158,255,0.1)' },
-            { label: '本月待执行任务', value: 1, icon: 'fa-hourglass-half', color: '#E6A23C', bg: 'rgba(230,162,60,0.1)' },
-            { label: '本月即将到期任务', value: 0, icon: 'fa-calendar-days', color: '#F56C6C', bg: 'rgba(245,108,108,0.1)' },
-            { label: '本月已超期任务', value: 0, icon: 'fa-triangle-exclamation', color: '#F56C6C', bg: 'rgba(245,108,108,0.1)' },
-            { label: '今日已完成任务', value: 0, icon: 'fa-circle-check', color: '#67C23A', bg: 'rgba(103,194,58,0.1)' }
+            { label: '今日任务', value: 3, icon: 'fa-clipboard-list', color: '#409EFF', bg: 'linear-gradient(135deg, #e0f2ff 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(64,158,255,0.15)' },
+            { label: '本月待执行', value: 12, icon: 'fa-hourglass-half', color: '#E6A23C', bg: 'linear-gradient(135deg, #fff7e6 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(230,162,60,0.15)' },
+            { label: '即将到期', value: 5, icon: 'fa-calendar-days', color: '#F56C6C', bg: 'linear-gradient(135deg, #fff1f0 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(245,108,108,0.15)' },
+            { label: '本月已超期', value: 2, icon: 'fa-triangle-exclamation', color: '#F56C6C', bg: 'linear-gradient(135deg, #fff1f0 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(245,108,108,0.15)' },
+            { label: '今日已完成', value: 8, icon: 'fa-circle-check', color: '#67C23A', bg: 'linear-gradient(135deg, #f6ffed 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(103,194,58,0.15)' }
         ]);
+
+        const analysisStats = ref([
+            { label: '随访率(人)', value: '98.5%', change: '+2.1%', icon: 'fa-user-check', color: '#409EFF' },
+            { label: '随访率(任务)', value: '86.2%', change: '+1.5%', icon: 'fa-chart-pie', color: '#67C23A' },
+            { label: '有效随访率', value: '92.4%', change: '-0.8%', icon: 'fa-bullseye', color: '#E6A23C' },
+            { label: '用药规范率', value: '94.0%', change: '+3.2%', icon: 'fa-capsules', color: '#F56C6C' }
+        ]);
+
+        const recentTasks = computed(() => {
+            return (MOCK_DATA['followup-task'].data || []).slice(0, 5);
+        });
+
+        const quickActions = [
+            { title: '新增任务', icon: 'fa-plus', color: '#409EFF', path: 'followup-task' },
+            { title: '患者建档', icon: 'fa-id-card', color: '#67C23A', path: 'patient-list' },
+            { title: '统计报表', icon: 'fa-chart-line', color: '#E6A23C', path: 'followup-rate' },
+            { title: '知识库', icon: 'fa-book-medical', color: '#909399', path: 'article-patient' }
+        ];
+
+        const systemNotices = ref([
+            { title: '系统维护公告', time: '10分钟前', type: 'info' },
+            { title: '有2条随访任务即将逾期', time: '1小时前', type: 'warning' },
+            { title: '成功导出3月销售分析报表', time: '3小时前', type: 'success' }
+        ]);
+
+        // 首页趋势图联动逻辑
+        const homeTimeRange = ref('week');
+        const homeTrendDataMap = {
+            'week': [
+                { label: '周一', value: 40 },
+                { label: '周二', value: 65 },
+                { label: '周三', value: 55 },
+                { label: '周四', value: 85 },
+                { label: '周五', value: 70 },
+                { label: '周六', value: 95 },
+                { label: '周日', value: 80 }
+            ],
+            'month': [
+                { label: '1-5日', value: 120 },
+                { label: '6-10日', value: 240 },
+                { label: '11-15日', value: 180 },
+                { label: '16-20日', value: 310 },
+                { label: '21-25日', value: 260 },
+                { label: '26-31日', value: 350 }
+            ]
+        };
+
+        const currentTrendData = computed(() => {
+            return homeTrendDataMap[homeTimeRange.value];
+        });
+
+
 
         const tableData = ref([]);
         const searchKeyword = ref('');
@@ -296,6 +440,8 @@ const app = createApp({
                     row.status = '停用';
                     ElementPlus.ElMessage.success('操作成功');
                 });
+            } else if (type === '执行') {
+                handleExecuteTask(row);
             } else {
                 ElementPlus.ElMessage.info(`正在进行【${type}】操作: ${row.name || row.id}`);
             }
@@ -462,12 +608,20 @@ const app = createApp({
             handleRuleSelectionChange, handleRuleDelete, handleSingleRuleDelete,
             addRuleVisible, addRuleForm, addRuleFormRef, addRuleRules, handleAddRuleOpen, handleAddRuleSubmit,
             handleSave, handleArticleSave, openAddModal, openEditModal, openArticleModal,
-            taskStats, tableData, searchKeyword, handleAction,
-            isCommonPage, isArticlePage, isBaseDataPage,
+            taskStats, analysisStats, recentTasks, quickActions, systemNotices,
+            homeTimeRange, currentTrendData,
+            tableData, searchKeyword, handleAction,
+
+            isCommonPage, isArticlePage, isBaseDataPage, isExecutePage, isPatientDetailPage,
+            patientDetailData, openPatientDetail,
+            executeTaskData, executeActiveTab, executePersonalExpanded,
+            executeFormSections, executeActiveSection, executeProgress,
+            scrollToSection, handleExecuteTask, handleFormScroll,
             dictGroups, activeDictGroup, dictItems
         };
     }
 });
+
 
 // --- 占位渲染函数 (Phase 4-6 将这些重构为真正的 Vue 逻辑) ---
 

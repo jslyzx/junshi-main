@@ -58,12 +58,184 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
     color: var(--sidebar-active-text) !important;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #999; }
+/* Hide scrollbars globally */
+::-webkit-scrollbar {
+    display: none;
+}
+* {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
 
-/* 隐藏侧边栏的默认滚动条 */
-.layout-aside .el-scrollbar__wrap { overflow-x: hidden; }
-.layout-aside .el-scrollbar__bar { display: none !important; }
+
+/* Dashboard Styles */
+.stat-card {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: pointer;
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.quick-action-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.quick-action-item:hover {
+    background-color: #f5f7fa;
+}
+.quick-action-item:hover .action-icon {
+    transform: scale(1.1);
+}
+
+.action-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    transition: all 0.2s;
+}
+
+.notice-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.notice-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+.notice-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+}
+.notice-dot.info { background-color: #909399; }
+.notice-dot.warning { background-color: #e6a23c; }
+.notice-dot.success { background-color: #67c23a; }
+.notice-dot.danger { background-color: #f56c6c; }
+
+.notice-content {
+    flex: 1;
+}
+.notice-title {
+    font-size: 13px;
+    color: #303133;
+    line-height: 1.4;
+    margin-bottom: 4px;
+}
+.notice-time {
+    font-size: 12px;
+    color: #909399;
+}
+
+/* Element Plus Overrides for Dashboard */
+.page-home .el-card__header {
+    padding: 12px 20px;
+    border-bottom: 1px solid #f0f2f5;
+}
+/* Patient Detail Page Styles */
+.page-patient-detail {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.header-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.header-info-item .info-label {
+    font-size: 12px;
+    color: #909399;
+}
+.header-info-item .info-value {
+    font-size: 14px;
+    font-weight: bold;
+    color: #303133;
+}
+
+.detail-section {
+    background: #fff;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,21,41,.05);
+}
+
+.section-tag-title {
+    position: relative;
+    display: inline-block;
+    height: 32px;
+    line-height: 32px;
+    padding: 0 25px 0 35px;
+    background-color: #409eff;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 20px;
+    clip-path: polygon(0 0, 92% 0, 100% 50%, 92% 100%, 0 100%, 5% 50%);
+    margin-top: 15px;
+}
+
+.section-tag-title::before {
+    content: '\f054'; /* FontAwesome chevron-right */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    left: 15px;
+    font-size: 12px;
+}
+
+.section-content {
+    padding: 10px 30px 20px 30px;
+}
+
+.item-label {
+    font-size: 13px;
+    color: #909399;
+    margin-bottom: 10px;
+}
+.item-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #303133;
+}
+
+.page-patient-detail .el-table {
+    border: 1px solid #f0f2f5;
+    border-radius: 4px;
+}
+.page-patient-detail .el-table th {
+    background-color: #f8f8f9 !important;
+}
+
+/* Execute Page Form Scrollbar Hidden */
+#execute-form-scroll::-webkit-scrollbar,
+.hide-scrollbar::-webkit-scrollbar { 
+    display: none; 
+}
+#execute-form-scroll,
+.hide-scrollbar { 
+    -ms-overflow-style: none; 
+    scrollbar-width: none; 
+}
+
+
+

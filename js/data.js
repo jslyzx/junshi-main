@@ -141,7 +141,7 @@ const MOCK_DATA = {
             { label: '更新时间', key: 'updateTime' }
         ],
         data: [
-            { id: 1, name: '艾伯维随访', status: '启用', remark: '', creator: '超级管理员', date: '2024-11-29 14:29:03', updater: '超级管理员', updateTime: '2024-11-29 14:29:10' }
+            { id: 1, name: '君实随访', status: '启用', remark: '', creator: '超级管理员', date: '2024-11-29 14:29:03', updater: '超级管理员', updateTime: '2024-11-29 14:29:10' }
         ]
     },
     'project-tag': {
@@ -228,14 +228,17 @@ const MOCK_DATA = {
             { label: '创建时间', key: 'date' }
         ],
         data: [
-            { id: 1, code: 'QT13', title: 'QT停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '其他', creator: '超级管理员', date: '2026-03-24' },
-            { id: 2, code: 'CD13', title: 'CD停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '克罗恩病(CD)', creator: '超级管理员', date: '2026-03-24' },
-            { id: 3, code: 'UC13', title: 'UC停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '溃疡性结肠炎(UC)', creator: '超级管理员', date: '2026-03-24' },
-            { id: 4, code: 'AS13', title: 'AS停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '强直性脊柱炎(AS)', creator: '超级管理员', date: '2026-03-24' },
-            { id: 5, code: 'PsA13', title: 'PsA停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '银屑病关节炎(PsA)', creator: '超级管理员', date: '2026-03-24' },
-            { id: 6, code: 'RA13', title: 'RA停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '类风湿性关节炎(RA)', creator: '超级管理员', date: '2026-03-24' },
-            { id: 7, code: 'AD13', title: 'AD停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '特应性皮炎(AD)', creator: '超级管理员', date: '2026-03-24' },
-            { id: 8, code: 'QT12', title: 'QT减量提问话术', content: '<p><strong>减量提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '其他', creator: '超级管理员', date: '2026-03-24' }
+            { id: 1, code: 'QT13', title: 'QT停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '非小细胞肺癌', creator: '超级管理员', date: '2026-03-24' },
+            { id: 2, code: 'CD13', title: 'CD停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '小细胞肺癌', creator: '超级管理员', date: '2026-03-24' },
+            { id: 3, code: 'UC13', title: 'UC停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '肾癌', creator: '超级管理员', date: '2026-03-24' },
+            { id: 4, code: 'AS13', title: 'AS停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '尿路上皮癌', creator: '超级管理员', date: '2026-03-24' },
+            { id: 5, code: 'PsA13', title: 'PsA停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '食管癌', creator: '超级管理员', date: '2026-03-24' },
+            { id: 6, code: 'RA13', title: 'RA停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '鼻咽癌', creator: '超级管理员', date: '2026-03-24' },
+            { id: 7, code: 'AD13', title: 'AD停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '头颈鳞癌', creator: '超级管理员', date: '2026-03-24' },
+            { id: 8, code: 'QT12', title: 'QT减量提问话术', content: '<p><strong>减量提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '三阴乳腺癌', creator: '超级管理员', date: '2026-03-24' },
+            { id: 8, code: 'QT12', title: 'QT减量提问话术', content: '<p><strong>减量提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '淋巴瘤', creator: '超级管理员', date: '2026-03-24' },
+            { id: 8, code: 'QT12', title: 'QT减量提问话术', content: '<p><strong>减量提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '黑色素瘤', creator: '超级管理员', date: '2026-03-24' },
+            { id: 8, code: 'QT12', title: 'QT减量提问话术', content: '<p><strong>减量提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '肝癌', creator: '超级管理员', date: '2026-03-24' }
         ]
     },
     'sales-stats': {
@@ -246,7 +249,7 @@ const MOCK_DATA = {
             { label: '销售时间', key: 'date' }
         ],
         data: [
-            { id: 1, pharmacy: '测试药房', product: '瑞福', count: 10, date: '2026-04-23' }
+            { id: 1, pharmacy: '测试药房', product: '拓益', count: 10, date: '2026-04-23' }
         ]
     },
     'followup-rate': {
@@ -259,10 +262,73 @@ const MOCK_DATA = {
         data: [
             { id: 1, month: '2026-03', total: 100, completed: 85, rate: '85%' }
         ]
+    },
+    'patient-list': {
+        columns: [
+            { label: '创建时间', key: 'createTime' },
+            { label: '患者姓名', key: 'name' },
+            { label: '患者编号', key: 'patientId' },
+            { label: '联系电话', key: 'phone' },
+            { label: '性别', key: 'gender' },
+            { label: '出生日期', key: 'birthDate' },
+            { label: '现有适应症', key: 'indication' },
+            { label: '首诊医院', key: 'hospital' }
+        ],
+        data: [
+            { id: 1, createTime: '2026-01-14 09:44:19', name: '吴*珍', patientId: 'ff881b85-bf8b-4ce6...', phone: '135****7735', gender: '女', birthDate: '', indication: '非小细胞肺癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '' },
+            { id: 2, createTime: '2026-01-14 09:44:19', name: '张*', patientId: 'ff4af52c-5894-45ed...', phone: '150****9660', gender: '男', birthDate: '', indication: '食管癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '' },
+            { id: 3, createTime: '2026-01-14 09:44:19', name: '齐*', patientId: 'ff47c658-c93a-49fa...', phone: '135****5130', gender: '女', birthDate: '', indication: '鼻咽癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '' },
+            { id: 4, createTime: '2026-01-14 09:44:19', name: '罗*凤', patientId: 'ff2425c1-69a9-404...', phone: '130****1167', gender: '女', birthDate: '', indication: '尿路上皮癌', hospital: '吉林省人民医院', province: '', city: '', district: '', address: '' },
+            { id: 5, createTime: '2026-01-14 09:44:19', name: '阎*', patientId: 'ff13bf89-1b0e-4c57...', phone: '139****2098', gender: '男', birthDate: '', indication: '三阴乳腺癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '' },
+            { id: 6, createTime: '2026-01-14 09:44:18', name: '付*娣', patientId: 'fe7b7ef9-25d5-4b4...', phone: '135****5666', gender: '女', birthDate: '2007-08-23', indication: '黑色素瘤', hospital: '吉林大学中日联谊医院', province: '', city: '', district: '', address: '' },
+            { id: 7, createTime: '2026-01-14 09:44:18', name: '刘*海', patientId: 'fe677953-6f53-47d...', phone: '135****3102', gender: '男', birthDate: '', indication: '黑色素瘤', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '' },
+            { id: 8, createTime: '2026-01-14 09:44:18', name: '冯*雪', patientId: 'fe4cbec8-420a-4efd...', phone: '183****2567', gender: '女', birthDate: '', indication: '结直肠癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '' },
+            { id: 9, createTime: '2026-01-14 09:44:18', name: '逯*', patientId: 'fe1d81a0-0590-465...', phone: '180****6619', gender: '男', birthDate: '', indication: '肝癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '' }
+        ]
+    },
+    'followup-task': {
+        columns: [
+            { label: '任务状态', key: 'status' },
+            { label: '患者编号', key: 'patientId' },
+            { label: '患者', key: 'patientName' },
+            { label: '联系电话', key: 'phone' },
+            { label: '计划执行时间', key: 'planDate' },
+            { label: '首次购药时间', key: 'firstPurchase' },
+            { label: '产品', key: 'product' },
+            { label: '适应症', key: 'indication' },
+            { label: '任务编号', key: 'taskId' },
+            { label: '服务摘要', key: 'serviceSummary' },
+            { label: '超期天数', key: 'overdue' },
+            { label: '执行人', key: 'executor' },
+            { label: '执行时间', key: 'execDate' },
+            { label: '创建时间', key: 'createDate' }
+        ],
+        data: [
+            { id: 1, status: '待执行', patientId: '3a7143ee-a7ba-40...', patientName: '郭*轩', phone: '139****3112', planDate: '2026-04-30', firstPurchase: '2024-02-19', product: '特瑞普利单抗注射液', indication: '非小细胞肺癌', taskId: 'F260420100005449', serviceSummary: '复购随访-1', overdue: '', executor: '', execDate: '', createDate: '2026-04-20 09:45:38' },
+            { id: 2, status: '已完成', patientId: '3a7143ee-a7ba-40...', patientName: '郭*轩', phone: '139****3112', planDate: '2026-04-01', firstPurchase: '2024-02-19', product: '特瑞普利单抗注射液', indication: '小细胞肺癌', taskId: 'F260329100005181', serviceSummary: '召回随访', overdue: '', executor: '测试药师', execDate: '2026-04-03 15:06:49', createDate: '2026-03-29 03:00:00' },
+            { id: 6, status: '已超期', patientId: '94b47460-0557-45...', patientName: '荆*', phone: '159****2121', planDate: '2026-01-15', firstPurchase: '2025-12-30', product: '特瑞普利单抗注射液', indication: '肾癌', taskId: 'F260115100002124', serviceSummary: '召回随访', overdue: '98', executor: '', execDate: '', createDate: '2026-01-10 10:00:00' },
+            { id: 7, status: '即将到期', patientId: 'fe7b7ef9-25d5-4b4...', patientName: '付*娣', phone: '135****5666', planDate: '2026-04-25', firstPurchase: '2025-11-06', product: '特瑞普利单抗注射液', indication: '尿路上皮癌', taskId: 'F260122100002122', serviceSummary: '召回随访', overdue: '', executor: '', execDate: '', createDate: '2026-04-20 14:00:00' },
+            { id: 8, status: '执行失败', patientId: 'a1d32247-b34b-46f...', patientName: '刘*宏', phone: '130****6562', planDate: '2026-03-20', firstPurchase: '2025-11-05', product: '特瑞普利单抗注射液', indication: '胃癌', taskId: 'F260320100002121', serviceSummary: '复购随访', overdue: '', executor: '王药师', execDate: '2026-03-21 11:00:00', createDate: '2026-03-15 09:00:00' },
+            { id: 3, status: '已完成', patientId: 'cabb7523-21c1-40a...', patientName: '高*星', phone: '133****9515', planDate: '2026-03-26', firstPurchase: '2024-07-16', product: '特瑞普利单抗注射液', indication: '结直肠癌', taskId: 'F260323100005104', serviceSummary: '召回随访', overdue: '', executor: '测试药师', execDate: '2026-03-27 22:12:13', createDate: '2026-03-23 03:00:01' }
+        ]
     }
 };
 
 const MENU_CONFIG = [
+    {
+        title: '随访管理',
+        id: 'followup',
+        children: [
+            { title: '随访任务', id: 'followup-task' }
+        ]
+    },
+    {
+        title: '患者管理',
+        id: 'patient',
+        children: [
+            { title: '患者列表', id: 'patient-list' }
+        ]
+    },
     {
         title: '基础信息管理',
         id: 'grant',
