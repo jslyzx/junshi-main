@@ -8,8 +8,14 @@ const MOCK_DATA = {
             { label: '状态', key: 'status' }
         ],
         data: [
-            { id: 1, name: '上海交通大学医学院附属瑞金医院', area: '上海市', level: '三级甲等', status: '启用' },
-            { id: 2, name: '复旦大学附属中山医院', area: '上海市', level: '三级甲等', status: '启用' }
+            { id: 1, name: '浙江益药全德堂药房连锁有限公司杭州清吟街分公司', area: '浙江杭州', level: 'DTP药房', status: '启用' },
+            { id: 2, name: '浙江益药全德堂药房连锁有限公司杭州解放路分公司', area: '浙江杭州', level: 'DTP药房', status: '启用' },
+            { id: 3, name: '上药控股(宁波)大药房有限公司杏苑连锁店', area: '浙江宁波', level: 'DTP药房', status: '启用' },
+            { id: 4, name: '陕西上药大药房有限公司第三分店', area: '陕西西安', level: 'DTP药房', status: '启用' },
+            { id: 5, name: '上药控股（陕西）有限公司西安新特药大药房', area: '陕西西安', level: 'DTP药房', status: '启用' },
+            { id: 6, name: '仁和药房网（北京）医药科技有限公司第四药房', area: '北京市', level: 'DTP药房', status: '启用' },
+            { id: 7, name: '大连德信行润德堂大药房有限公司', area: '辽宁大连', level: 'DTP药房', status: '启用' },
+            { id: 8, name: '吉林大格测试药房', area: '吉林长春', level: '内部测试', status: '停用' }
         ]
     },
     'doctor-manage': {
@@ -146,23 +152,24 @@ const MOCK_DATA = {
             { label: '项目名称', key: 'project' },
             { label: '产品', key: 'product' },
             { label: '适应症', key: 'indication' },
+            { label: '标签自动生成分值', key: 'score' },
             { label: '状态', key: 'status' },
             { label: '创建人', key: 'creator' }
         ],
         data: [
-            { id: 1, name: '没有合并症', category: '合并症', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', status: '启用', creator: '超级管理员' },
-            { id: 2, name: '有合并症', category: '合并症', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', status: '启用', creator: '超级管理员' },
-            { id: 3, name: '肾癌', category: '疾病信息', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', status: '启用', creator: '超级管理员' },
-            { id: 4, name: '鼻咽癌', category: '疾病信息', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', status: '启用', creator: '超级管理员' },
-            { id: 5, name: '食管癌', category: '疾病信息', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', status: '启用', creator: '超级管理员' },
-            { id: 6, name: '尿路上皮癌', category: '疾病信息', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', status: '启用', creator: '超级管理员' },
-            { id: 7, name: '小细胞肺癌', category: '疾病信息', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', status: '启用', creator: '超级管理员' },
-            { id: 8, name: '非小细胞肺癌', category: '疾病信息', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', status: '启用', creator: '超级管理员' },
-            { id: 9, name: '自行停药_其他原因', category: '用药行为', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', status: '启用', creator: '超级管理员' },
-            { id: 10, name: '自行停药_异地不方便', category: '用药行为', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', status: '启用', creator: '超级管理员' },
-            { id: 11, name: '自行停药_感觉治疗无效', category: '用药行为', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', status: '启用', creator: '超级管理员' },
-            { id: 12, name: '自行停药_感觉已缓解', category: '用药行为', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', status: '启用', creator: '超级管理员' },
-            { id: 13, name: '自行停药_副作用', category: '用药行为', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', status: '启用', creator: '超级管理员' }
+            { id: 1, name: '没有合并症', category: '合并症', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', score: '0', status: '启用', creator: '超级管理员' },
+            { id: 2, name: '有合并症', category: '合并症', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', score: '5', status: '启用', creator: '超级管理员' },
+            { id: 3, name: '肾癌', category: '疾病信息', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', score: '10', status: '启用', creator: '超级管理员' },
+            { id: 4, name: '鼻咽癌', category: '疾病信息', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', score: '10', status: '启用', creator: '超级管理员' },
+            { id: 5, name: '食管癌', category: '疾病信息', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', score: '10', status: '启用', creator: '超级管理员' },
+            { id: 6, name: '尿路上皮癌', category: '疾病信息', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', score: '10', status: '启用', creator: '超级管理员' },
+            { id: 7, name: '小细胞肺癌', category: '疾病信息', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', score: '10', status: '启用', creator: '超级管理员' },
+            { id: 8, name: '非小细胞肺癌', category: '疾病信息', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', score: '10', status: '启用', creator: '超级管理员' },
+            { id: 9, name: '自行停药_其他原因', category: '用药行为', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', score: '20', status: '启用', creator: '超级管理员' },
+            { id: 10, name: '自行停药_异地不方便', category: '用药行为', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', score: '15', status: '启用', creator: '超级管理员' },
+            { id: 11, name: '自行停药_感觉治疗无效', category: '用药行为', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', score: '25', status: '启用', creator: '超级管理员' },
+            { id: 12, name: '自行停药_感觉已缓解', category: '用药行为', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', score: '15', status: '启用', creator: '超级管理员' },
+            { id: 13, name: '自行停药_副作用', category: '用药行为', type: '产品专用', project: '君实随访', product: '特瑞普利单抗注射液', indication: '', score: '30', status: '启用', creator: '超级管理员' }
         ]
     },
     'questionnaire': {

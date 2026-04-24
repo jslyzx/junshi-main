@@ -131,7 +131,14 @@
                                 </div>
 
                                 <el-table :data="tableData" style="width: 100%" :header-cell-style="{background:'#f8f8f9', color:'#515a6e', fontWeight: 'bold'}" border>
-                                    <el-table-column v-for="col in currentColumns" :key="col.key" :prop="col.key" :label="col.label" sortable></el-table-column>
+                                    <el-table-column v-for="col in currentColumns" :key="col.key" :prop="col.key" :label="col.label" sortable>
+                                        <template #default="scope">
+                                            <el-link v-if="activePath === 'questionnaire' && col.key === 'code'" type="primary" @click="openQuestionnaireQuestions(scope.row)">
+                                                {{ scope.row[col.key] }}
+                                            </el-link>
+                                            <span v-else>{{ scope.row[col.key] }}</span>
+                                        </template>
+                                    </el-table-column>
                                     <el-table-column label="操作" width="100" fixed="right" align="center">
                                         <template #default="scope">
                                             <!-- 项目随访特殊下拉菜单 -->
@@ -220,7 +227,7 @@
 
         <!-- 通用编辑弹窗 -->
         <el-dialog v-model="editVisible" :title="editTitle" width="500px">
-            <el-form :model="editForm" label-width="100px" ref="editFormRef">
+            <el-form :model="editForm" label-width="140px" ref="editFormRef">
                 <template v-if="activePath === 'project-followup'">
                     <el-form-item label="项目名称" prop="name" :rules="[{ required: true, message: '项目名称不能为空', trigger: 'blur' }]">
                         <el-input v-model="editForm.name" placeholder="请输入项目名称"></el-input>
@@ -229,11 +236,41 @@
                         <el-input type="textarea" v-model="editForm.remark" placeholder="请输入备注"></el-input>
                     </el-form-item>
                 </template>
+                <template v-else-if="activePath === 'project-tag'">
+                    <el-form-item label="标签" prop="name" :rules="[{ required: true, message: '请输入标签', trigger: 'blur' }]">
+                        <el-input v-model="editForm.name" placeholder="请输入标签"></el-input>
+                    </el-form-item>
+                    <el-form-item label="标签分类" prop="category" :rules="[{ required: true, message: '请选择标签分类', trigger: 'change' }]">
+                        <el-select v-model="editForm.category" placeholder="请选择标签分类" style="width: 100%">
+                            <el-option label="合并症" value="合并症"></el-option>
+                            <el-option label="疾病信息" value="疾病信息"></el-option>
+                            <el-option label="用药行为" value="用药行为"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="标签使用类型" prop="type" :rules="[{ required: true, message: '请选择标签使用类型', trigger: 'change' }]">
+                        <el-select v-model="editForm.type" placeholder="请选择标签使用类型" style="width: 100%">
+                            <el-option label="产品专用" value="产品专用"></el-option>
+                            <el-option label="通用" value="通用"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="随访项目" prop="project" :rules="[{ required: true, message: '请选择随访项目', trigger: 'change' }]">
+                        <el-select v-model="editForm.project" placeholder="请选择随访项目" style="width: 100%">
+                            <el-option label="君实随访" value="君实随访"></el-option>
+                            <el-option label="其他项目" value="其他项目"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="标签自动生成分值" prop="score">
+                        <el-input v-model="editForm.score" placeholder="请输入分值"></el-input>
+                    </el-form-item>
+                </template>
                 <template v-else>
-                    <el-form-item v-for="col in currentColumns" :key="col.key" :label="col.label">
+                    <el-form-item v-for="col in currentColumns.filter(c => !['创建人', '创建时间', '更新人', '更新时间'].includes(c.label))" :key="col.key" :label="col.label">
                         <el-select v-if="col.key === 'status'" v-model="editForm[col.key]" style="width: 100%">
                             <el-option label="启用" value="启用"></el-option>
                             <el-option label="停用" value="停用"></el-option>
+                        </el-select>
+                        <el-select v-else-if="col.label.includes('商品')" v-model="editForm[col.key]" style="width: 100%" placeholder="请选择商品">
+                            <el-option label="拓益（特瑞普利单抗注射液）" value="拓益（特瑞普利单抗注射液）"></el-option>
                         </el-select>
                         <el-input v-else v-model="editForm[col.key]"></el-input>
                     </el-form-item>
@@ -261,14 +298,284 @@
                     </el-col>
                 </el-row>
                 <el-form-item label="文章正文">
-                    <el-input type="textarea" :rows="12" v-model="articleForm.content"></el-input>
+                        <el-input type="textarea" :rows="12" v-model="articleForm.content"></el-input>
                 </el-form-item>
             </el-form>
             <template #footer>
                 <el-button @click="articleVisible = false">取消</el-button>
-                <el-button type="primary" @click="handleArticleSave">确认</el-button>
+                <el-button type="primary" @click="articleVisible = false">保存为草稿</el-button>
+                <el-button type="success" @click="articleVisible = false">发布文章</el-button>
             </template>
         </el-dialog>
+
+        <!-- 医院选择弹窗 -->
+        <el-dialog v-model="hospitalVisible" title="项目医院" width="900px" top="5vh">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; flex: 1;">
+                    <div style="width: 3px; height: 16px; background-color: #409eff; margin-right: 10px;"></div>
+                    <span style="font-weight: bold; font-size: 15px; color: #303133; margin-right: 15px;">项目医院</span>
+                    <div style="flex: 1; height: 1px; background-color: #e4e7ed; margin-right: 15px;"></div>
+                </div>
+                <div>
+                    <el-button type="primary" size="small" @click="handleHospitalAdd">新增</el-button>
+                    <el-button type="primary" size="small" plain @click="handleHospitalDelete" :disabled="hospitalSelection.length === 0">删除</el-button>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+                <span style="font-weight: 500; font-size: 14px; color: #606266;">医院名称</span>
+                <el-input v-model="hospitalSearchKeyword" placeholder="请输入医院名称" style="width: 240px"></el-input>
+                <el-button type="primary" @click="handleHospitalSearch">搜索</el-button>
+                <el-button @click="handleHospitalReset">重置</el-button>
+            </div>
+
+            <el-table 
+                :data="hospitalData" 
+                style="width: 100%" 
+                border 
+                :header-cell-style="{background:'#f8f8f9', color:'#515a6e', fontWeight: 'bold'}"
+                @selection-change="handleHospitalSelectionChange">
+                <el-table-column type="selection" width="55" align="center"></el-table-column>
+                <el-table-column prop="name" label="医院名称" min-width="250"></el-table-column>
+                <el-table-column prop="city" label="所在省市" width="200"></el-table-column>
+            </el-table>
+
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                <el-pagination
+                    v-model:current-page="hospitalPage"
+                    v-model:page-size="hospitalPageSize"
+                    :page-sizes="[10, 20, 50, 100]"
+                    background
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="hospitalTotal"
+                />
+            </div>
+        </el-dialog>
+
+        <!-- 项目商品弹窗 -->
+        <el-dialog v-model="productVisible" title="项目商品" width="900px" top="5vh">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; flex: 1;">
+                    <div style="width: 3px; height: 16px; background-color: #409eff; margin-right: 10px;"></div>
+                    <span style="font-weight: bold; font-size: 15px; color: #303133; margin-right: 15px;">项目商品</span>
+                    <div style="flex: 1; height: 1px; background-color: #e4e7ed; margin-right: 15px;"></div>
+                </div>
+                <div>
+                    <el-button type="primary" size="small" @click="handleProductAdd">新增</el-button>
+                    <el-button type="primary" size="small" plain @click="handleProductDelete" :disabled="productSelection.length === 0">删除</el-button>
+                </div>
+            </div>
+
+            <el-table 
+                :data="productData" 
+                style="width: 100%" 
+                border 
+                :header-cell-style="{background:'#f8f8f9', color:'#515a6e', fontWeight: 'bold'}"
+                @selection-change="handleProductSelectionChange">
+                <el-table-column type="selection" width="55" align="center"></el-table-column>
+                <el-table-column prop="name" label="商品名" min-width="150"></el-table-column>
+                <el-table-column prop="genericName" label="通用名" min-width="200"></el-table-column>
+                <el-table-column prop="manufacturer" label="厂家" min-width="200"></el-table-column>
+            </el-table>
+
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                <el-pagination
+                    v-model:current-page="productPage"
+                    v-model:page-size="productPageSize"
+                    :page-sizes="[10, 20, 50, 100]"
+                    background
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="productTotal"
+                />
+            </div>
+        </el-dialog>
+
+        <!-- 问卷模块问题弹窗 -->
+        <el-dialog v-model="questionnaireQuestionVisible" title="问卷模块问题" width="1200px" top="5vh">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; flex: 1;">
+                    <div style="width: 3px; height: 16px; background-color: #409eff; margin-right: 10px;"></div>
+                    <span style="font-weight: bold; font-size: 15px; color: #303133; margin-right: 15px;">问卷问题</span>
+                    <div style="flex: 1; height: 1px; background-color: #e4e7ed; margin-right: 15px;"></div>
+                </div>
+                <div>
+                    <el-button type="primary" size="small" @click="handleQuestionAdd">新增</el-button>
+                </div>
+            </div>
+
+            <el-table 
+                :data="questionData" 
+                style="width: 100%" 
+                border 
+                :header-cell-style="{background:'#f8f8f9', color:'#515a6e', fontWeight: 'bold'}">
+                <el-table-column prop="order" label="排序" width="60" align="center"></el-table-column>
+                <el-table-column prop="label" label="标签" min-width="200"></el-table-column>
+                <el-table-column prop="type" label="类型" width="80" align="center"></el-table-column>
+                <el-table-column prop="question" label="问题" min-width="250"></el-table-column>
+                <el-table-column prop="isRequired" label="是否必答" width="100" align="center"></el-table-column>
+                <el-table-column prop="isTriggerByAnswer" label="是否通过回答选项触发" width="180" align="center"></el-table-column>
+                <el-table-column prop="creator" label="创建人" width="100" align="center"></el-table-column>
+                <el-table-column prop="createTime" label="创建时间" width="160" align="center"></el-table-column>
+                <el-table-column prop="updater" label="更新人" width="100" align="center"></el-table-column>
+                <el-table-column prop="updateTime" label="更新时间" width="160" align="center"></el-table-column>
+                <el-table-column label="操作" width="120" fixed="right" align="center">
+                    <template #default="scope">
+                        <el-button link type="primary" size="small">编辑</el-button>
+                        <el-button link type="danger" size="small">删除</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                <el-pagination
+                    v-model:current-page="questionPage"
+                    v-model:page-size="questionPageSize"
+                    :page-sizes="[10, 20, 50, 100]"
+                    background
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="questionTotal"
+                />
+            </div>
+        </el-dialog>
+
+        <!-- 项目表单弹窗 -->
+        <el-dialog v-model="projectFormVisible" title="项目表单" width="900px" top="5vh">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; flex: 1;">
+                    <div style="width: 3px; height: 16px; background-color: #409eff; margin-right: 10px;"></div>
+                    <span style="font-weight: bold; font-size: 15px; color: #303133; margin-right: 15px;">项目表单</span>
+                    <div style="flex: 1; height: 1px; background-color: #e4e7ed; margin-right: 15px;"></div>
+                </div>
+                <div>
+                    <el-button type="primary" size="small" @click="handleProjectFormAdd">新增</el-button>
+                </div>
+            </div>
+
+            <el-table 
+                :data="projectFormData" 
+                style="width: 100%" 
+                border 
+                :header-cell-style="{background:'#f8f8f9', color:'#515a6e', fontWeight: 'bold'}"
+                @selection-change="handleProjectFormSelectionChange">
+                <el-table-column type="selection" width="55" align="center"></el-table-column>
+                <el-table-column prop="name" label="项目名称" min-width="150"></el-table-column>
+                <el-table-column prop="status" label="状态" width="100" align="center"></el-table-column>
+                <el-table-column prop="remark" label="备注" min-width="150"></el-table-column>
+                <el-table-column prop="creator" label="创建人" width="120" align="center"></el-table-column>
+                <el-table-column label="操作" width="180" fixed="right" align="center">
+                    <template #default="scope">
+                        <el-button link type="primary" size="small">编辑</el-button>
+                        <el-button link type="danger" size="small" style="color: #f56c6c;">停用</el-button>
+                        <el-button link type="danger" size="small" style="color: #f56c6c;">删除</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                <el-pagination
+                    v-model:current-page="formPage"
+                    v-model:page-size="formPageSize"
+                    :page-sizes="[10, 20, 50, 100]"
+                    background
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="formTotal"
+                />
+            </div>
+        </el-dialog>
+
+        <!-- 项目规则列表弹窗 -->
+        <el-dialog v-model="projectRuleVisible" title="项目规则" width="1200px" top="5vh">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; flex: 1;">
+                    <div style="width: 3px; height: 16px; background-color: #409eff; margin-right: 10px;"></div>
+                    <span style="font-weight: bold; font-size: 15px; color: #303133; margin-right: 15px;">项目规则</span>
+                    <div style="flex: 1; height: 1px; background-color: #e4e7ed; margin-right: 15px;"></div>
+                </div>
+                <div>
+                    <el-button type="primary" size="small" @click="handleAddRuleOpen">新增</el-button>
+                    <el-button type="primary" size="small" plain @click="handleRuleDelete" :disabled="ruleSelection.length === 0">删除</el-button>
+                </div>
+            </div>
+
+            <el-table 
+                :data="ruleData" 
+                style="width: 100%" 
+                border 
+                :header-cell-style="{background:'#f8f8f9', color:'#515a6e', fontWeight: 'bold'}"
+                @selection-change="handleRuleSelectionChange">
+                <el-table-column type="selection" width="55" align="center"></el-table-column>
+                <el-table-column prop="name" label="规则名称" min-width="120"></el-table-column>
+                <el-table-column prop="content" label="随访内容" min-width="150"></el-table-column>
+                <el-table-column prop="status" label="状态" width="80" align="center"></el-table-column>
+                <el-table-column prop="creator" label="创建人" width="100" align="center"></el-table-column>
+                <el-table-column prop="createTime" label="创建时间" width="160" align="center"></el-table-column>
+                <el-table-column prop="updater" label="更新人" width="100" align="center"></el-table-column>
+                <el-table-column prop="updateTime" label="更新时间" width="160" align="center"></el-table-column>
+                <el-table-column label="操作" width="150" fixed="right" align="center">
+                    <template #default="scope">
+                        <el-button link type="primary" size="small">编辑</el-button>
+                        <el-button link type="danger" size="small" style="color: #f56c6c;">停用</el-button>
+                        <el-button link type="danger" size="small" style="color: #f56c6c;" @click="handleSingleRuleDelete(scope.row)">删除</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                <el-pagination
+                    v-model:current-page="rulePage"
+                    v-model:page-size="rulePageSize"
+                    :page-sizes="[10, 20, 50, 100]"
+                    background
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="ruleTotal"
+                />
+            </div>
+        </el-dialog>
+
+        <!-- 新增项目规则弹窗 -->
+        <el-dialog v-model="addRuleVisible" title="新增项目规则" width="600px">
+            <el-form :model="addRuleForm" :rules="addRuleRules" ref="addRuleFormRef" label-width="120px">
+                <el-form-item label="规则名称" prop="name">
+                    <el-input v-model="addRuleForm.name" placeholder="请输入规则名称"></el-input>
+                </el-form-item>
+                <el-form-item label="随访内容" prop="content">
+                    <el-input v-model="addRuleForm.content" placeholder="请输入随访内容"></el-input>
+                </el-form-item>
+                <el-form-item label="任务生成类型" prop="taskType">
+                    <el-select v-model="addRuleForm.taskType" placeholder="请输入选择" style="width: 100%">
+                        <el-option label="系统自动生成" value="auto"></el-option>
+                        <el-option label="手动触发生成" value="manual"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="项目商品" prop="product">
+                    <el-select v-model="addRuleForm.product" placeholder="请选择项目商品" style="width: 100%">
+                        <el-option label="拓益（特瑞普利单抗注射液）" value="tuoyi"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="适应症" prop="indication">
+                    <el-select v-model="addRuleForm.indication" placeholder="请选择适应症" style="width: 100%">
+                        <el-option label="非小细胞肺癌" value="nsclc"></el-option>
+                        <el-option label="鼻咽癌" value="npc"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="标签" prop="tags">
+                    <el-select v-model="addRuleForm.tags" placeholder="请选择标签" style="width: 100%">
+                        <el-option label="高危患者" value="high_risk"></el-option>
+                        <el-option label="依从性差" value="low_compliance"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="执行天数" prop="executeDays">
+                    <el-input v-model="addRuleForm.executeDays" placeholder="请输入执行天数"></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <el-button @click="addRuleVisible = false">取消</el-button>
+                    <el-button type="primary" @click="handleAddRuleSubmit">确定</el-button>
+                </div>
+            </template>
+        </el-dialog>
+
     </div>
 
     <!-- Vue 3 and Element Plus JS -->

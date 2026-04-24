@@ -117,12 +117,178 @@ const app = createApp({
         const tableData = ref([]);
         const searchKeyword = ref('');
 
+        // 医院选择弹窗状态
+        const hospitalVisible = ref(false);
+        const hospitalSearchKeyword = ref('');
+        const hospitalData = ref([
+            { id: 1, name: '浙江益药全德堂药房连锁有限公司杭州清吟街分公司', city: '浙江杭州' },
+            { id: 2, name: '浙江益药全德堂药房连锁有限公司杭州解放路分公司', city: '浙江杭州' },
+            { id: 3, name: '上药控股(宁波)大药房有限公司杏苑连锁店', city: '浙江宁波' },
+            { id: 4, name: '陕西上药大药房有限公司第三分店', city: '陕西西安' },
+            { id: 5, name: '上药控股（陕西）有限公司西安新特药大药房', city: '陕西西安' },
+            { id: 6, name: '仁和药房网（北京）医药科技有限公司第四药房', city: '北京' },
+            { id: 7, name: '大连德信行润德堂大药房有限公司', city: '辽宁大连' },
+            { id: 8, name: '吉林大格测试药房', city: '吉林长春' }
+        ]);
+        const hospitalSelection = ref([]);
+        const hospitalPage = ref(1);
+        const hospitalPageSize = ref(10);
+        const hospitalTotal = ref(29);
+
+        const handleHospitalSearch = () => { ElementPlus.ElMessage.info('搜索医院: ' + hospitalSearchKeyword.value); };
+        const handleHospitalReset = () => { hospitalSearchKeyword.value = ''; };
+        const handleHospitalSelectionChange = (val) => { hospitalSelection.value = val; };
+        const handleHospitalAdd = () => { ElementPlus.ElMessage.success('点击了新增医院'); };
+        const handleHospitalDelete = () => { ElementPlus.ElMessage.warning('删除了 ' + hospitalSelection.value.length + ' 个医院'); };
+
+        // 项目商品弹窗状态
+        const productVisible = ref(false);
+        const productData = ref([
+            { id: 1, name: '拓益', genericName: '特瑞普利单抗注射液', manufacturer: '上海君实生物医药科技股份有限公司' }
+        ]);
+        const productSelection = ref([]);
+        const productPage = ref(1);
+        const productPageSize = ref(10);
+        const productTotal = ref(3);
+
+        const handleProductSelectionChange = (val) => { productSelection.value = val; };
+        const handleProductAdd = () => { ElementPlus.ElMessage.success('点击了新增商品'); };
+        const handleProductDelete = () => { ElementPlus.ElMessage.warning('删除了 ' + productSelection.value.length + ' 个商品'); };
+
+        // 问卷模块问题弹窗状态
+        const questionnaireQuestionVisible = ref(false);
+        const questionData = ref([]);
+        
+        const QUESTION_MOCK_DB = {
+            'CQ': [ // 超期随访问卷
+                { id: 101, order: 1, label: '超期原因', type: '单选', question: '您好，请问您近期未按时进行复诊/随访的原因是什么？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-05 09:47:40', updater: '超级管理员', updateTime: '2025-12-05 09:47:40' },
+                { id: 102, order: 2, label: '用药现状', type: '单选', question: '您目前是否还在继续按照医嘱服用君实的药品？', isRequired: '是', isTriggerByAnswer: '否', creator: '超级管理员', createTime: '2025-12-05 09:48:10', updater: '超级管理员', updateTime: '2025-12-05 09:48:10' },
+                { id: 103, order: 3, label: '不良反应', type: '多选', question: '您近期是否有遇到任何不适或不良反应？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-05 09:49:00', updater: '超级管理员', updateTime: '2025-12-05 09:49:00' }
+            ],
+            'FG': [ // 复购随访问卷
+                { id: 201, order: 1, label: '复购数量', type: '填空', question: '您好，请问您本次计划复购的药品数量或疗程是多少？', isRequired: '是', isTriggerByAnswer: '否', creator: '超级管理员', createTime: '2025-12-06 10:10:00', updater: '超级管理员', updateTime: '2025-12-06 10:10:00' },
+                { id: 202, order: 2, label: '疗效评估', type: '单选', question: '在上一周期的用药过程中，您觉得整体疗效如何？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-06 10:11:00', updater: '超级管理员', updateTime: '2025-12-06 10:11:00' },
+                { id: 203, order: 3, label: '处方需求', type: '单选', question: '您本次购药是否需要医生为您重新开具或调整处方？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-06 10:12:00', updater: '超级管理员', updateTime: '2025-12-06 10:12:00' }
+            ],
+            'SC': [ // 首次建档随访问卷
+                { id: 301, order: 1, label: '信息确认', type: '单选', question: '请确认您的基本个人信息与诊断信息是否准确无误？', isRequired: '是', isTriggerByAnswer: '否', creator: '超级管理员', createTime: '2025-12-07 14:00:00', updater: '超级管理员', updateTime: '2025-12-07 14:00:00' },
+                { id: 302, order: 2, label: '既往病史', type: '多选', question: '您过往是否有其他重大疾病史或药物过敏史（请列举）？', isRequired: '是', isTriggerByAnswer: '否', creator: '超级管理员', createTime: '2025-12-07 14:02:00', updater: '超级管理员', updateTime: '2025-12-07 14:02:00' },
+                { id: 303, order: 3, label: '用药指导认知', type: '单选', question: '您对接下来的用药流程、储存条件和注意事项是否已经完全了解？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' }
+            ]
+        };
+
+        const questionPage = ref(1);
+        const questionPageSize = ref(10);
+        const questionTotal = ref(0);
+
+        const handleQuestionAdd = () => { ElementPlus.ElMessage.success('点击了新增问题'); };
+        const openQuestionnaireQuestions = (row) => {
+            const list = QUESTION_MOCK_DB[row.code] || [];
+            questionData.value = list;
+            questionTotal.value = list.length;
+            questionnaireQuestionVisible.value = true;
+        };
+
+        // 项目表单弹窗状态
+        const projectFormVisible = ref(false);
+        const projectFormData = ref([]);
+        const formSelection = ref([]);
+        const formPage = ref(1);
+        const formPageSize = ref(10);
+        const formTotal = ref(0);
+
+        const handleProjectFormSelectionChange = (val) => { formSelection.value = val; };
+        const handleProjectFormAdd = () => { ElementPlus.ElMessage.success('点击了新增表单'); };
+
+        // 项目规则列表弹窗状态
+        const projectRuleVisible = ref(false);
+        const ruleData = ref([
+            { id: 1, name: '召回随访', content: '召回随访', status: '启用', creator: '超级管理员', createTime: '2025-11-27 11:39:06', updater: '超级管理员', updateTime: '2025-11-27 13:41:22' },
+            { id: 2, name: '复购随访-2', content: '复购随访-2', status: '启用', creator: '超级管理员', createTime: '2025-11-27 11:36:44', updater: '超级管理员', updateTime: '2025-11-27 13:41:12' },
+            { id: 3, name: '复购随访-1', content: '复购随访-1', status: '启用', creator: '超级管理员', createTime: '2025-11-27 10:41:48', updater: '超级管理员', updateTime: '2025-11-27 13:41:15' },
+            { id: 4, name: '首次随访', content: '首次随访', status: '启用', creator: '超级管理员', createTime: '2025-11-27 10:34:30', updater: '超级管理员', updateTime: '2025-11-27 13:41:19' }
+        ]);
+        const ruleSelection = ref([]);
+        const rulePage = ref(1);
+        const rulePageSize = ref(10);
+        const ruleTotal = ref(4);
+
+        const handleRuleSelectionChange = (val) => { ruleSelection.value = val; };
+        const handleRuleDelete = () => { ElementPlus.ElMessage.warning('删除了 ' + ruleSelection.value.length + ' 条规则'); };
+        const handleSingleRuleDelete = (row) => { ElementPlus.ElMessage.warning('删除了规则: ' + row.name); };
+
+        // 新增项目规则表单状态
+        const addRuleVisible = ref(false);
+        const addRuleFormRef = ref(null);
+        const addRuleForm = ref({
+            name: '',
+            content: '',
+            taskType: '',
+            product: '',
+            indication: '',
+            tags: '',
+            executeDays: ''
+        });
+        const addRuleRules = {
+            name: [{ required: true, message: '请输入规则名称', trigger: 'blur' }],
+            content: [{ required: true, message: '请输入随访内容', trigger: 'blur' }],
+            taskType: [{ required: true, message: '请选择任务生成类型', trigger: 'change' }],
+            product: [{ required: true, message: '请选择项目商品', trigger: 'change' }],
+            executeDays: [{ required: true, message: '请输入执行天数', trigger: 'blur' }]
+        };
+
+        const handleAddRuleOpen = () => {
+            if (addRuleFormRef.value) addRuleFormRef.value.resetFields();
+            addRuleForm.value = { name: '', content: '', taskType: '', product: '', indication: '', tags: '', executeDays: '' };
+            addRuleVisible.value = true;
+        };
+
+        const handleAddRuleSubmit = () => {
+            addRuleFormRef.value.validate((valid) => {
+                if (valid) {
+                    const newRule = {
+                        id: Date.now(),
+                        name: addRuleForm.value.name,
+                        content: addRuleForm.value.content,
+                        status: '启用',
+                        creator: '超级管理员',
+                        createTime: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                        updater: '超级管理员',
+                        updateTime: new Date().toISOString().slice(0, 19).replace('T', ' ')
+                    };
+                    ruleData.value.unshift(newRule);
+                    ruleTotal.value = ruleData.value.length;
+                    ElementPlus.ElMessage.success('新增项目规则成功');
+                    addRuleVisible.value = false;
+                }
+            });
+        };
+
         // 操作逻辑
         const handleAction = (type, row) => {
             if (type === '编辑') {
                 openEditModal(row);
-            } else if (type === '失效') {
-                ElementPlus.ElMessageBox.confirm(`确定要失效项目【${row.name}】吗？`, '警告', {
+            } else if (type === '医院') {
+                hospitalVisible.value = true;
+            } else if (type === '商品') {
+                productVisible.value = true;
+            } else if (type === '表单') {
+                // 加载问卷模块的数据作为表单数据
+                const qData = MOCK_DATA['questionnaire'].data || [];
+                // 映射数据结构
+                projectFormData.value = qData.map(item => ({
+                    id: item.id,
+                    name: item.code, // 使用模块编号字段
+                    status: item.status,
+                    remark: item.content || '',
+                    creator: item.creator
+                }));
+                formTotal.value = projectFormData.value.length;
+                projectFormVisible.value = true;
+            } else if (type === '规则') {
+                projectRuleVisible.value = true;
+            } else if (type === '失效' || type === '停用') {
+                ElementPlus.ElMessageBox.confirm(`确定要停用项目【${row.name}】吗？`, '警告', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     type: 'warning'
@@ -174,12 +340,20 @@ const app = createApp({
         window.openArticleModal = openArticleModal;
 
         const handleSave = () => {
-            // 校验逻辑
-            if (activePath.value === 'project-followup' && !editForm.value.name) {
-                ElementPlus.ElMessage.error('项目名称不能为空');
+            if (!editFormRef.value) {
+                saveData();
                 return;
             }
+            editFormRef.value.validate((valid) => {
+                if (valid) {
+                    saveData();
+                } else {
+                    ElementPlus.ElMessage.error('请完善必填信息');
+                }
+            });
+        };
 
+        const saveData = () => {
             const data = MOCK_DATA[activePath.value].data;
             if (editTitle.value === '新增') {
                 data.unshift({ ...editForm.value, id: Date.now() });
@@ -238,6 +412,17 @@ const app = createApp({
             currentTitle, handleMenuSelect, handleTabClick, handleTabRemove, getGroupIcon, handleUserCommand,
             editVisible, editTitle, editForm, currentColumns, editFormRef,
             articleVisible, articleTitle, articleForm, currentCategories,
+            hospitalVisible, hospitalSearchKeyword, hospitalData, hospitalSelection, hospitalPage, hospitalPageSize, hospitalTotal,
+            handleHospitalSearch, handleHospitalReset, handleHospitalSelectionChange, handleHospitalAdd, handleHospitalDelete,
+            productVisible, productData, productSelection, productPage, productPageSize, productTotal,
+            handleProductSelectionChange, handleProductAdd, handleProductDelete,
+            questionnaireQuestionVisible, questionData, questionPage, questionPageSize, questionTotal,
+            handleQuestionAdd, openQuestionnaireQuestions,
+            projectFormVisible, projectFormData, formSelection, formPage, formPageSize, formTotal,
+            handleProjectFormSelectionChange, handleProjectFormAdd,
+            projectRuleVisible, ruleData, ruleSelection, rulePage, rulePageSize, ruleTotal,
+            handleRuleSelectionChange, handleRuleDelete, handleSingleRuleDelete,
+            addRuleVisible, addRuleForm, addRuleFormRef, addRuleRules, handleAddRuleOpen, handleAddRuleSubmit,
             handleSave, handleArticleSave, openAddModal, openEditModal, openArticleModal,
             taskStats, tableData, searchKeyword, handleAction,
             isCommonPage, isArticlePage, isBaseDataPage,
