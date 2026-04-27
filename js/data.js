@@ -202,12 +202,7 @@ const MOCK_DATA = {
             { label: '更新时间', key: 'updateDate' }
         ],
         data: [
-            { id: 1, project: '君实随访', product: '特瑞普利单抗注射液', name: '非小细胞肺癌', status: '启用', creator: '超级管理员', createDate: '2026-03-24 12:04:07', updater: '超级管理员', updateDate: '2026-03-24 12:07:42' },
-            { id: 2, project: '君实随访', product: '特瑞普利单抗注射液', name: '小细胞肺癌', status: '启用', creator: '超级管理员', createDate: '2026-03-24 12:04:07', updater: '超级管理员', updateDate: '2026-03-24 12:07:43' },
-            { id: 3, project: '君实随访', product: '特瑞普利单抗注射液', name: '肾癌', status: '启用', creator: '超级管理员', createDate: '2026-03-24 12:04:07', updater: '超级管理员', updateDate: '2026-03-24 12:07:43' },
-            { id: 4, project: '君实随访', product: '特瑞普利单抗注射液', name: '尿路上皮癌', status: '启用', creator: '超级管理员', createDate: '2026-03-24 12:04:07', updater: '超级管理员', updateDate: '2026-03-24 12:07:44' },
-            { id: 5, project: '君实随访', product: '特瑞普利单抗注射液', name: '食管癌', status: '启用', creator: '超级管理员', createDate: '2026-03-24 12:04:07', updater: '超级管理员', updateDate: '2026-03-24 12:07:45' },
-            { id: 6, project: '君实随访', product: '特瑞普利单抗注射液', name: '鼻咽癌', status: '启用', creator: '超级管理员', createDate: '2026-03-24 12:04:07', updater: '超级管理员', updateDate: '2026-03-24 12:07:45' },
+
             { id: 7, project: '君实随访', product: '特瑞普利单抗注射液', name: '头颈鳞癌', status: '启用', creator: '超级管理员', createDate: '2026-03-24 12:04:07', updater: '超级管理员', updateDate: '2026-03-24 12:07:46' },
             { id: 8, project: '君实随访', product: '特瑞普利单抗注射液', name: '三阴乳腺癌', status: '启用', creator: '超级管理员', createDate: '2026-03-24 12:04:07', updater: '超级管理员', updateDate: '2026-03-24 12:07:47' },
             { id: 9, project: '君实随访', product: '特瑞普利单抗注射液', name: '淋巴瘤', status: '启用', creator: '超级管理员', createDate: '2026-03-24 12:04:07', updater: '超级管理员', updateDate: '2026-03-24 12:07:47' },
@@ -228,17 +223,11 @@ const MOCK_DATA = {
             { label: '创建时间', key: 'date' }
         ],
         data: [
-            { id: 1, code: 'QT13', title: 'QT停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '非小细胞肺癌', creator: '超级管理员', date: '2026-03-24' },
-            { id: 2, code: 'CD13', title: 'CD停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '小细胞肺癌', creator: '超级管理员', date: '2026-03-24' },
-            { id: 3, code: 'UC13', title: 'UC停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '肾癌', creator: '超级管理员', date: '2026-03-24' },
-            { id: 4, code: 'AS13', title: 'AS停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '尿路上皮癌', creator: '超级管理员', date: '2026-03-24' },
-            { id: 5, code: 'PsA13', title: 'PsA停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '食管癌', creator: '超级管理员', date: '2026-03-24' },
-            { id: 6, code: 'RA13', title: 'RA停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '鼻咽癌', creator: '超级管理员', date: '2026-03-24' },
-            { id: 7, code: 'AD13', title: 'AD停药提问话术', content: '<p><strong>停药提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '头颈鳞癌', creator: '超级管理员', date: '2026-03-24' },
-            { id: 8, code: 'QT12', title: 'QT减量提问话术', content: '<p><strong>减量提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '三阴乳腺癌', creator: '超级管理员', date: '2026-03-24' },
-            { id: 8, code: 'QT12', title: 'QT减量提问话术', content: '<p><strong>减量提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '淋巴瘤', creator: '超级管理员', date: '2026-03-24' },
-            { id: 8, code: 'QT12', title: 'QT减量提问话术', content: '<p><strong>减量提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '黑色素瘤', creator: '超级管理员', date: '2026-03-24' },
-            { id: 8, code: 'QT12', title: 'QT减量提问话术', content: '<p><strong>减量提问关键：了解患...</strong></p>', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '肝癌', creator: '超级管理员', date: '2026-03-24' }
+            {"id":1,"code":"QT13","title":"QT停药提问话术","content":"停药提问关键：了解患者停药的真实原因（副作用、经济压力、依从性等）。建议话术：“郭先生，注意到您最近没有按计划购药，请问是因为身体有什么不适，还是其他原因导致停药了呢？这对后续治疗方案的调整非常关键，请如实告知。”","project":"君实随访","productName":"拓益","genericName":"特瑞普利单抗注射液","indication":"非小细胞肺癌","creator":"超级管理员","date":"2026-03-24"},
+            {"id":2,"code":"CD13","title":"CD停药提问话术","content":"停药提问关键：区分主动停药与医嘱停药。建议话术：“由于免疫治疗的疗程较长，中间停药可能会影响疗效。请问您是医生让您暂时停药观察，还是您自己感觉症状好转就停了？”","project":"君实随访","productName":"拓益","genericName":"特瑞普利单抗注射液","indication":"小细胞肺癌","creator":"超级管理员","date":"2026-03-24"},
+            {"id":3,"code":"UC13","title":"UC停药提问话术","content":"停药提问关键：询问是否存在未识别的不良反应。建议话术：“除了瘙痒，您最近有没有觉得特别累、或者恶心呕吐的情况？有些副作用比较隐蔽，可能是导致您不想继续用药的原因。”","project":"君实随访","productName":"拓益","genericName":"特瑞普利单抗注射液","indication":"肾癌","creator":"超级管理员","date":"2026-03-24"},
+            {"id":4,"code":"AS13","title":"副作用安抚话术","content":"建议话术：“郭先生，您反馈的皮肤瘙痒是免疫治疗中比较常见的轻度副作用，不要太担心。建议您局部涂抹一些温和的润肤霜，同时避免抓挠。如果瘙痒范围扩大或出现皮疹，请务必第一时间拍照发给我，并联系主治医生。”","project":"君实随访","productName":"拓益","genericName":"特瑞普利单抗注射液","indication":"尿路上皮癌","creator":"超级管理员","date":"2026-03-24"},
+            {"id":5,"code":"PsA13","title":"复购引导话术","content":"建议话术：“您的下次用药时间快到了，为了保证体内药物浓度的稳定，建议您提前安排好购药计划。如果您在购药流程上有什么疑问，或者需要查询附近的药房，可以随时咨询我。”","project":"君实随访","productName":"拓益","genericName":"特瑞普利单抗注射液","indication":"食管癌","creator":"超级管理员","date":"2026-03-24"}
         ]
     },
     'sales-stats': {
@@ -326,6 +315,26 @@ const MOCK_DATA = {
             { id: 2, time: '2026-04-25 10:15:00', patient: '张*', specialistScore: 4, specialistName: '王专员', centerScore: 5, content: '服务态度很好，就是回访电话稍微有点晚。' },
             { id: 3, time: '2026-04-24 16:30:00', patient: '齐*', specialistScore: 5, specialistName: '赵专员', centerScore: 4, content: '随访中心的服务很专业，非常有帮助。' }
         ]
+    },
+    'message-manage': {
+        columns: [
+            { label: '患者', key: 'patientName' },
+            { label: '最近消息', key: 'lastMsg' },
+            { label: '时间', key: 'time' },
+            { label: '状态', key: 'status' }
+        ],
+        data: [
+            { id: 1, patientName: '郭*轩', lastMsg: '我想咨询下关于特瑞普利单抗的副作用', time: '2026-04-27 10:30', status: '未回复', history: [
+                { role: 'patient', content: '您好，我最近打完药感觉皮肤有点痒。', time: '2026-04-27 09:00' },
+                { role: 'helper', content: '郭先生您好，皮疹是免疫治疗常见的反应，请问痒的面积大吗？有没有红肿？', time: '2026-04-27 09:05' },
+                { role: 'patient', content: '面积不算大，就是局部几个点，我想咨询下关于特瑞普利单抗的副作用。', time: '2026-04-27 10:30' }
+            ]},
+            { id: 2, patientName: '吴*珍', lastMsg: '好的，谢谢医生', time: '2026-04-26 15:20', status: '已回复', history: [
+                { role: 'patient', content: '请问下次随访是什么时候？', time: '2026-04-26 15:00' },
+                { role: 'helper', content: '吴女士，您的下次计划随访时间是5月10日，届时我们会电话联系您。', time: '2026-04-26 15:15' },
+                { role: 'patient', content: '好的，谢谢医生', time: '2026-04-26 15:20' }
+            ]}
+        ]
     }
 };
 
@@ -377,7 +386,8 @@ const MENU_CONFIG = [
             { title: '项目适应症', id: 'indications' },
             { title: '项目话术', id: 'scripts' },
             { title: '随访率统计', id: 'followup-rate' },
-            { title: '满意度报表', id: 'satisfaction-report' }
+            { title: '满意度报表', id: 'satisfaction-report' },
+            { title: '留言管理', id: 'message-manage' }
         ]
     },
     {

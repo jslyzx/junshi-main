@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-</head>
+    <style>[v-cloak] { display: none !important; }</style></head>
 <body>
     <div id="app" v-cloak>
         <el-container class="layout-container">
@@ -211,155 +211,208 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <el-button style="width: 100%; margin-top: 15px;" size="small" plain>更多动态</el-button>
                                     </el-card>
                                 </el-col>
                             </el-row>
                         </div>
 
-
                         <!-- 通用列表页内容 (Vue 模板) -->
                         <div v-else-if="isCommonPage" class="page-common">
-                            <!-- 搜索区域 -->
-                            <div class="search-area" style="background: #fff; padding: 15px 20px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #ebeef5; display: flex; align-items: center; gap: 15px;">
-                                <template v-if="activePath === 'patient-list'">
-                                    <div style="display: flex; align-items: center; font-size: 14px; color: #606266;">
-                                        <span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">患者编号</span>
-                                        <el-input placeholder="搜索患者编号" style="width: 200px" clearable></el-input>
-                                    </div>
-                                    <div style="display: flex; align-items: center; font-size: 14px; color: #606266;">
-                                        <span style="margin-right: 10px; font-weight: 500; white-space: nowrap; margin-left: 20px;">常用检索</span>
-                                        <el-select placeholder="全部患者" style="width: 200px">
-                                            <el-option label="全部患者" value="all"></el-option>
-                                        </el-select>
-                                    </div>
-                                    <el-button type="primary" style="margin-left: 20px;">搜索</el-button>
-                                    <el-button>重置</el-button>
-                                </template>
-                                <template v-else-if="activePath === 'followup-task'">
-                                    <div style="display: flex; flex-direction: column; gap: 15px; width: 100%;">
-                                        <div style="display: flex; align-items: center; gap: 20px;">
-                                            <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">产品</span><el-select placeholder="请选择产品" style="width: 180px"><el-option label="全部产品" value="all"></el-option></el-select></div>
-                                            <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">适应症</span><el-select placeholder="请选择适应症" style="width: 180px"><el-option label="全部" value="all"></el-option></el-select></div>
-                                            <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">任务状态</span>
-                                                <el-select placeholder="已完成任务" style="width: 180px">
-                                                    <el-option label="今日任务" value="今日任务"></el-option>
-                                                    <el-option label="本月待执行任务" value="本月待执行任务"></el-option>
-                                                    <el-option label="本月即将到期任务" value="本月即将到期任务"></el-option>
-                                                    <el-option label="本月已超期任务" value="本月已超期任务"></el-option>
-                                                    <el-option label="已完成任务" value="已完成任务"></el-option>
-                                                    <el-option label="今日已完成任务" value="今日已完成任务"></el-option>
-                                                    <el-option label="执行失败任务" value="执行失败任务"></el-option>
-                                                    <el-option label="全部任务" value="全部任务"></el-option>
-                                                </el-select>
-                                            </div>
-                                            <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">患者编号</span><el-input placeholder="搜索患者编号" style="width: 180px"></el-input></div>
+                            <!-- 列表视图 (非聊天模式) -->
+                            <div v-if="!isChatMode">
+                                <!-- 搜索区域 -->
+                                <div class="search-area" style="background: #fff; padding: 15px 20px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #ebeef5; display: flex; align-items: center; gap: 15px;">
+                                    <template v-if="activePath === 'patient-list'">
+                                        <div style="display: flex; align-items: center; font-size: 14px; color: #606266;">
+                                            <span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">患者编号</span>
+                                            <el-input placeholder="搜索患者编号" style="width: 200px" clearable></el-input>
                                         </div>
-                                        <div style="display: flex; align-items: center; gap: 20px;">
-                                            <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">计划执行日期</span><el-date-picker type="daterange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期" style="width: 250px"></el-date-picker></div>
-                                            <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">执行人</span><el-select placeholder="请选择" style="width: 180px"><el-option label="全部" value="all"></el-option></el-select></div>
-                                            <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">执行时间</span><el-date-picker type="daterange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期" style="width: 250px"></el-date-picker></div>
-                                            <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">任务类型</span><el-select placeholder="请输入选择" style="width: 180px"><el-option label="全部" value="all"></el-option></el-select></div>
-                                            <div style="display: flex; align-items: center; margin-left: auto;">
-                                                <el-button type="primary">搜索</el-button>
-                                                <el-button>重置</el-button>
+                                        <div style="display: flex; align-items: center; font-size: 14px; color: #606266;">
+                                            <span style="margin-right: 10px; font-weight: 500; white-space: nowrap; margin-left: 20px;">常用检索</span>
+                                            <el-select placeholder="全部患者" style="width: 200px">
+                                                <el-option label="全部患者" value="all"></el-option>
+                                            </el-select>
+                                        </div>
+                                        <el-button type="primary" style="margin-left: 20px;">搜索</el-button>
+                                        <el-button>重置</el-button>
+                                    </template>
+                                    <template v-else-if="activePath === 'followup-task'">
+                                        <div style="display: flex; flex-direction: column; gap: 15px; width: 100%;">
+                                            <div style="display: flex; align-items: center; gap: 20px;">
+                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">产品</span><el-select placeholder="请选择产品" style="width: 180px"><el-option label="全部产品" value="all"></el-option></el-select></div>
+                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">适应症</span><el-select placeholder="请选择适应症" style="width: 180px"><el-option label="全部" value="all"></el-option></el-select></div>
+                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">任务状态</span>
+                                                    <el-select placeholder="已完成任务" style="width: 180px">
+                                                        <el-option label="今日任务" value="今日任务"></el-option>
+                                                        <el-option label="本月待执行任务" value="本月待执行任务"></el-option>
+                                                        <el-option label="本月即将到期任务" value="本月即将到期任务"></el-option>
+                                                        <el-option label="本月已超期任务" value="本月已超期任务"></el-option>
+                                                        <el-option label="已完成任务" value="已完成任务"></el-option>
+                                                        <el-option label="今日已完成任务" value="今日已完成任务"></el-option>
+                                                        <el-option label="执行失败任务" value="执行失败任务"></el-option>
+                                                        <el-option label="全部任务" value="全部任务"></el-option>
+                                                    </el-select>
+                                                </div>
+                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">患者编号</span><el-input placeholder="搜索患者编号" style="width: 180px"></el-input></div>
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 20px;">
+                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">计划执行日期</span><el-date-picker type="daterange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期" style="width: 250px"></el-date-picker></div>
+                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">执行人</span><el-select placeholder="请选择" style="width: 180px"><el-option label="全部" value="all"></el-option></el-select></div>
+                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">执行时间</span><el-date-picker type="daterange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期" style="width: 250px"></el-date-picker></div>
+                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">任务类型</span><el-select placeholder="请输入选择" style="width: 180px"><el-option label="全部" value="all"></el-option></el-select></div>
+                                                <div style="display: flex; align-items: center; margin-left: auto;">
+                                                    <el-button type="primary">搜索</el-button>
+                                                    <el-button>重置</el-button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </template>
-                                <template v-else>
-                                    <div style="display: flex; align-items: center; font-size: 14px; color: #606266;">
-                                        <span style="margin-right: 10px; font-weight: 500;">项目名称</span>
-                                        <el-input v-model="searchKeyword" placeholder="搜索项目名称" style="width: 240px" clearable></el-input>
-                                    </div>
-                                    <el-button type="primary">搜索</el-button>
-                                    <el-button>重置</el-button>
-                                </template>
-                            </div>
-
-                            <!-- 操作区域和表格 -->
-                            <div class="table-area" style="background: #fff; padding: 15px 20px; border-radius: 4px; border: 1px solid #ebeef5;">
-                                <div style="margin-bottom: 15px; display: flex; justify-content: flex-end; align-items: center;">
-                                    <el-button v-if="activePath !== 'patient-list' && activePath !== 'satisfaction-report'" type="primary" @click="openAddModal(activePath)">新增</el-button>
-                                    <el-button v-if="activePath === 'followup-task'" type="primary" plain style="margin-left: 10px;">导出</el-button>
-                                    <div style="margin-left: 15px; display: flex; gap: 15px; color: #606266; font-size: 16px; cursor: pointer;">
-                                        <i class="fa-solid fa-arrows-rotate" title="刷新"></i>
-                                        <i class="fa-solid fa-list-ul" title="列设置"></i>
-                                        <i class="fa-solid fa-gear" title="设置"></i>
-                                    </div>
+                                    </template>
+                                    <template v-else-if="activePath === 'message-manage'">
+                                        <div style="display: flex; align-items: center; font-size: 14px; color: #606266;">
+                                            <span style="margin-right: 10px; font-weight: 500;">患者姓名</span>
+                                            <el-input v-model="messageSearchKeyword" placeholder="搜索患者姓名" style="width: 240px" clearable></el-input>
+                                        </div>
+                                        <el-button type="primary">搜索</el-button>
+                                        <el-button @click="messageSearchKeyword = ''">重置</el-button>
+                                    </template>
+                                    <template v-else>
+                                        <div style="display: flex; align-items: center; font-size: 14px; color: #606266;">
+                                            <span style="margin-right: 10px; font-weight: 500;">项目名称</span>
+                                            <el-input v-model="searchKeyword" placeholder="搜索项目名称" style="width: 240px" clearable></el-input>
+                                        </div>
+                                        <el-button type="primary">搜索</el-button>
+                                        <el-button>重置</el-button>
+                                    </template>
                                 </div>
 
-                                <el-table :data="tableData" style="width: 100%" :header-cell-style="{background:'#f8f8f9', color:'#515a6e', fontWeight: 'bold'}" border>
-                                    <el-table-column v-if="activePath === 'followup-task'" type="selection" width="55" align="center"></el-table-column>
-                                    <el-table-column v-for="col in currentColumns" :key="col.key" :prop="col.key" :label="col.label" sortable>
-                                        <template #default="scope">
-                                            <!-- 患者姓名点击跳转 -->
-                                            <el-link v-if="activePath === 'patient-list' && col.key === 'name'" type="primary" @click="openPatientDetail(scope.row)" style="font-weight: bold;">
-                                                {{ scope.row[col.key] }}
-                                            </el-link>
-                                            <el-link v-else-if="activePath === 'questionnaire' && col.key === 'code'" type="primary" @click="openQuestionnaireQuestions(scope.row)">
-                                                {{ scope.row[col.key] }}
-                                            </el-link>
-                                            <template v-else-if="col.key === 'status'">
+                                <!-- 操作区域和表格 -->
+                                <div class="table-area" style="background: #fff; padding: 15px 20px; border-radius: 4px; border: 1px solid #ebeef5;">
+                                    <div style="margin-bottom: 15px; display: flex; justify-content: flex-end; align-items: center;">
+                                        <el-button v-if="activePath !== 'patient-list' && activePath !== 'satisfaction-report' && activePath !== 'message-manage'" type="primary" @click="openAddModal(activePath)">新增</el-button>
+                                        <el-button v-if="activePath === 'followup-task'" type="primary" plain style="margin-left: 10px;">导出</el-button>
+                                        <div style="margin-left: 15px; display: flex; gap: 15px; color: #606266; font-size: 16px; cursor: pointer;">
+                                            <i class="fa-solid fa-arrows-rotate" title="刷新"></i>
+                                            <i class="fa-solid fa-list-ul" title="列设置"></i>
+                                            <i class="fa-solid fa-gear" title="设置"></i>
+                                        </div>
+                                    </div>
 
-                                                <!-- 待执行：清爽青色 -->
-                                                <el-tag v-if="scope.row.status === '待执行' && activePath === 'followup-task'" style="background-color: #e1f3f0; border-color: #e1f3f0; color: #1ab195; font-weight: normal; padding: 0 12px; border-radius: 4px;" size="default">{{ scope.row.status }}</el-tag>
-                                                <!-- 已完成：生机绿色 -->
-                                                <el-tag v-else-if="scope.row.status === '已完成' && activePath === 'followup-task'" style="background-color: #f2f9ec; border-color: #f2f9ec; color: #83c238; font-weight: normal; padding: 0 12px; border-radius: 4px;" size="default">{{ scope.row.status }}</el-tag>
-                                                <!-- 已超期：警示红色 -->
-                                                <el-tag v-else-if="scope.row.status === '已超期' && activePath === 'followup-task'" style="background-color: #fff1f0; border-color: #fff1f0; color: #f5222d; font-weight: normal; padding: 0 12px; border-radius: 4px;" size="default">{{ scope.row.status }}</el-tag>
-                                                <!-- 即将到期：温暖橙色 -->
-                                                <el-tag v-else-if="scope.row.status === '即将到期' && activePath === 'followup-task'" style="background-color: #fff7e6; border-color: #fff7e6; color: #fa8c16; font-weight: normal; padding: 0 12px; border-radius: 4px;" size="default">{{ scope.row.status }}</el-tag>
-                                                <!-- 执行失败：中性灰色 -->
-                                                <el-tag v-else-if="scope.row.status === '执行失败' && activePath === 'followup-task'" style="background-color: #f5f5f5; border-color: #f5f5f5; color: #8c8c8c; font-weight: normal; padding: 0 12px; border-radius: 4px;" size="default">{{ scope.row.status }}</el-tag>
-                                                
-                                                <el-tag v-else-if="scope.row.status === '待执行'" type="info" size="small">{{ scope.row.status }}</el-tag>
-                                                <el-tag v-else-if="scope.row.status === '已完成'" type="success" size="small">{{ scope.row.status }}</el-tag>
-                                                <el-tag v-else :type="scope.row.status === '启用' ? 'success' : 'info'" size="small">{{ scope.row.status }}</el-tag>
-                                            </template>
-                                            <span v-else>{{ scope.row[col.key] }}</span>
-                                        </template>
-                                    </el-table-column>
-                                    <el-table-column v-if="activePath !== 'patient-list' && activePath !== 'satisfaction-report'" label="操作" width="100" fixed="right" align="center">
-                                        <template #default="scope">
-                                            <!-- 随访任务：仅待执行和即将到期显示执行按钮 -->
-                                            <template v-if="activePath === 'followup-task'">
-                                                <el-button v-if="scope.row.status === '待执行' || scope.row.status === '即将到期'" link type="primary" size="small" @click="handleAction('执行', scope.row)">执行</el-button>
-                                                <span v-else style="color: #c0c4cc; font-size: 13px;">—</span>
-                                            </template>
-                                            <!-- 项目随访特殊下拉菜单 -->
-                                            <el-dropdown v-else-if="activePath === 'project-followup'" trigger="hover">
-                                                <span class="el-dropdown-link" style="color: #409eff; cursor: pointer; outline: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px;">
-                                                    <i class="fa-solid fa-sliders" style="font-size: 14px;"></i>
-                                                </span>
-                                                <template #dropdown>
-                                                    <el-dropdown-menu>
-                                                        <el-dropdown-item @click="handleAction('编辑', scope.row)">编辑</el-dropdown-item>
-                                                        <el-dropdown-item @click="handleAction('医院', scope.row)">医院</el-dropdown-item>
-                                                        <el-dropdown-item @click="handleAction('商品', scope.row)">商品</el-dropdown-item>
-                                                        <el-dropdown-item @click="handleAction('表单', scope.row)">表单</el-dropdown-item>
-                                                        <el-dropdown-item @click="handleAction('规则', scope.row)">规则</el-dropdown-item>
-                                                        <el-dropdown-item divided style="color: #f56c6c" @click="handleAction('停用', scope.row)">停用</el-dropdown-item>
-                                                    </el-dropdown-menu>
+                                    <el-table :data="activePath === 'message-manage' ? filteredMessages : tableData" style="width: 100%" :header-cell-style="{background:'#f8f8f9', color:'#515a6e', fontWeight: 'bold'}" border>
+                                        <el-table-column v-if="activePath === 'followup-task'" type="selection" width="55" align="center"></el-table-column>
+                                        <el-table-column v-for="col in currentColumns" :key="col.key" :prop="col.key" :label="col.label" sortable>
+                                            <template #default="scope">
+                                                <!-- 患者姓名点击跳转 -->
+                                                <el-link v-if="activePath === 'patient-list' && col.key === 'name'" type="primary" @click="openPatientDetail(scope.row)" style="font-weight: bold;">
+                                                    {{ scope.row[col.key] }}
+                                                </el-link>
+                                                <el-link v-else-if="activePath === 'questionnaire' && col.key === 'code'" type="primary" @click="openQuestionnaireQuestions(scope.row)">
+                                                    {{ scope.row[col.key] }}
+                                                </el-link>
+                                                <template v-else-if="col.key === 'status'">
+
+                                                    <!-- 待执行：清爽青色 -->
+                                                    <el-tag v-if="scope.row.status === '待执行' && activePath === 'followup-task'" style="background-color: #e1f3f0; border-color: #e1f3f0; color: #1ab195; font-weight: normal; padding: 0 12px; border-radius: 4px;" size="default">{{ scope.row.status }}</el-tag>
+                                                    <!-- 已完成：生机绿色 -->
+                                                    <el-tag v-else-if="scope.row.status === '已完成' && activePath === 'followup-task'" style="background-color: #f2f9ec; border-color: #f2f9ec; color: #83c238; font-weight: normal; padding: 0 12px; border-radius: 4px;" size="default">{{ scope.row.status }}</el-tag>
+                                                    <!-- 已超期：警示红色 -->
+                                                    <el-tag v-else-if="scope.row.status === '已超期' && activePath === 'followup-task'" style="background-color: #fff1f0; border-color: #fff1f0; color: #f5222d; font-weight: normal; padding: 0 12px; border-radius: 4px;" size="default">{{ scope.row.status }}</el-tag>
+                                                    <!-- 即将到期：温暖橙色 -->
+                                                    <el-tag v-else-if="scope.row.status === '即将到期' && activePath === 'followup-task'" style="background-color: #fff7e6; border-color: #fff7e6; color: #fa8c16; font-weight: normal; padding: 0 12px; border-radius: 4px;" size="default">{{ scope.row.status }}</el-tag>
+                                                    <!-- 执行失败：中性灰色 -->
+                                                    <el-tag v-else-if="scope.row.status === '执行失败' && activePath === 'followup-task'" style="background-color: #f5f5f5; border-color: #f5f5f5; color: #8c8c8c; font-weight: normal; padding: 0 12px; border-radius: 4px;" size="default">{{ scope.row.status }}</el-tag>
+                                                    
+                                                    <el-tag v-else-if="scope.row.status === '待执行'" type="info" size="small">{{ scope.row.status }}</el-tag>
+                                                    <el-tag v-else-if="scope.row.status === '已完成'" type="success" size="small">{{ scope.row.status }}</el-tag>
+                                                    <el-tag v-else :type="scope.row.status === '启用' ? 'success' : 'info'" size="small">{{ scope.row.status }}</el-tag>
                                                 </template>
-                                            </el-dropdown>
-                                            <!-- 其他页面通用操作 -->
-                                            <div v-else>
-                                                <el-dropdown trigger="hover">
+                                                <span v-else>{{ scope.row[col.key] }}</span>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column v-if="activePath !== 'patient-list' && activePath !== 'satisfaction-report'" label="操作" width="100" fixed="right" align="center">
+                                            <template #default="scope">
+                                                <!-- 随访任务：仅待执行和即将到期显示执行按钮 -->
+                                                <template v-if="activePath === 'followup-task'">
+                                                    <el-button v-if="scope.row.status === '待执行' || scope.row.status === '即将到期'" link type="primary" size="small" @click="handleAction('执行', scope.row)">执行</el-button>
+                                                    <span v-else style="color: #c0c4cc; font-size: 13px;">—</span>
+                                                </template>
+                                                <!-- 项目随访特殊下拉菜单 -->
+                                                <el-dropdown v-else-if="activePath === 'project-followup'" trigger="hover">
                                                     <span class="el-dropdown-link" style="color: #409eff; cursor: pointer; outline: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px;">
                                                         <i class="fa-solid fa-sliders" style="font-size: 14px;"></i>
                                                     </span>
                                                     <template #dropdown>
                                                         <el-dropdown-menu>
                                                             <el-dropdown-item @click="handleAction('编辑', scope.row)">编辑</el-dropdown-item>
-                                                            <el-dropdown-item divided style="color: #f56c6c" @click="handleAction('删除', scope.row)">删除</el-dropdown-item>
+                                                            <el-dropdown-item @click="handleAction('医院', scope.row)">医院</el-dropdown-item>
+                                                            <el-dropdown-item @click="handleAction('商品', scope.row)">商品</el-dropdown-item>
+                                                            <el-dropdown-item @click="handleAction('表单', scope.row)">表单</el-dropdown-item>
+                                                            <el-dropdown-item @click="handleAction('规则', scope.row)">规则</el-dropdown-item>
+                                                            <el-dropdown-item divided style="color: #f56c6c" @click="handleAction('停用', scope.row)">停用</el-dropdown-item>
                                                         </el-dropdown-menu>
                                                     </template>
                                                 </el-dropdown>
+                                                <!-- 留言管理：仅显示回复 -->
+                                                <template v-else-if="activePath === 'message-manage'">
+                                                    <el-button link type="primary" size="small" @click="selectMessage(scope.row)">回复</el-button>
+                                                </template>
+                                                <!-- 其他页面通用操作 -->
+                                                <div v-else>
+                                                    <el-dropdown trigger="hover">
+                                                        <span class="el-dropdown-link" style="color: #409eff; cursor: pointer; outline: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px;">
+                                                            <i class="fa-solid fa-sliders" style="font-size: 14px;"></i>
+                                                        </span>
+                                                        <template #dropdown>
+                                                            <el-dropdown-menu>
+                                                                <el-dropdown-item @click="handleAction('编辑', scope.row)">编辑</el-dropdown-item>
+                                                                <el-dropdown-item divided style="color: #f56c6c" @click="handleAction('删除', scope.row)">删除</el-dropdown-item>
+                                                            </el-dropdown-menu>
+                                                        </template>
+                                                    </el-dropdown>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+                                    </el-table>
+                                </div>
+                            </div>
+
+                            <!-- 对话视图 (isChatMode 为 true 时显示) -->
+                            <div v-else class="page-messages" style="display: flex; gap: 0; height: calc(100vh - 160px); background: #fff; border: 1px solid #ebeef5; border-radius: 8px; overflow: hidden; width: 100%;">
+                                <!-- 左侧：对话列表 (侧边栏) -->
+                                <div style="width: 280px; border-right: 1px solid #f0f2f5; display: flex; flex-direction: column;">
+                                    <div style="padding: 15px; border-bottom: 1px solid #f0f2f5;">
+                                        <el-button link icon="ArrowLeft" @click="isChatMode = false">返回列表</el-button>
+                                    </div>
+                                    <el-scrollbar>
+                                        <div v-for="msg in filteredMessages" :key="msg.id" 
+                                             @click="selectMessage(msg)"
+                                             style="padding: 15px; cursor: pointer; border-bottom: 1px solid #fafafa;"
+                                             :style="{ background: activeMessage && activeMessage.id === msg.id ? '#f0f7ff' : '#fff' }">
+                                            <div style="font-weight: 600; margin-bottom: 5px;">{{ msg.patientName }}</div>
+                                            <div style="font-size: 12px; color: #999; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ msg.lastMsg }}</div>
+                                        </div>
+                                    </el-scrollbar>
+                                </div>
+                                <!-- 右侧：聊天主窗 -->
+                                <div v-if="activeMessage" style="flex: 1; display: flex; flex-direction: column; background: #f8f9fb;">
+                                    <div style="padding: 15px 25px; background: #fff; border-bottom: 1px solid #f0f2f5; display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="font-size: 16px; font-weight: bold;">{{ activeMessage.patientName }}</span>
+                                        <el-button link type="primary" @click="openPatientDetail(activeMessage)">查看资料</el-button>
+                                    </div>
+                                    <el-scrollbar ref="chatScrollRef" style="flex: 1; padding: 20px;">
+                                        <div v-for="(h, i) in activeMessage.history" :key="i" style="display: flex; margin-bottom: 20px;" :style="{ justifyContent: h.role === 'patient' ? 'flex-start' : 'flex-end' }">
+                                            <div style="max-width: 70%;">
+                                                <div style="font-size: 11px; color: #999; margin-bottom: 4px;" :style="{ textAlign: h.role === 'patient' ? 'left' : 'right' }">{{ h.time }}</div>
+                                                <div :style="{ padding: '10px 14px', borderRadius: '8px', background: h.role === 'patient' ? '#fff' : '#409eff', color: h.role === 'patient' ? '#333' : '#fff' }">
+                                                    {{ h.content }}
+                                                </div>
                                             </div>
-                                        </template>
-                                    </el-table-column>
-                                </el-table>
+                                        </div>
+                                    </el-scrollbar>
+                                    <div style="padding: 15px 20px; background: #fff; border-top: 1px solid #f0f2f5; display: flex; gap: 10px;">
+                                        <el-input type="textarea" :rows="2" v-model="replyContent" placeholder="回复..." @keyup.ctrl.enter="handleReplyMessage"></el-input>
+                                        <el-button type="primary" @click="handleReplyMessage">发送</el-button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -658,6 +711,140 @@
                         </div>
 
 
+
+                        <!-- 留言管理页面 -->
+                        <div v-else-if="activePath === 'message-manage'" class="page-messages" style="display: flex; gap: 0; height: calc(100vh - 160px); background: #fff; border: 1px solid #ebeef5; border-radius: 8px; overflow: hidden;">
+                            <!-- 左侧：对话列表 -->
+                            <div style="width: 320px; border-right: 1px solid #f0f2f5; display: flex; flex-direction: column;">
+                                <div style="padding: 20px; border-bottom: 1px solid #f0f2f5; display: flex; align-items: center; gap: 10px;">
+                                    <el-input placeholder="搜索患者" prefix-icon="Search" v-model="messageSearchKeyword" size="default" clearable />
+                                </div>
+                                <el-scrollbar>
+                                    <div v-for="msg in filteredMessages" :key="msg.id" 
+                                         @click="selectMessage(msg)"
+                                         class="message-list-item"
+                                         :class="{ active: activeMessage && activeMessage.id === msg.id }"
+                                         style="padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #fafafa; transition: all 0.3s; position: relative;">
+                                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                                            <span style="font-weight: 600; color: #303133;">{{ msg.patientName }}</span>
+                                            <span style="font-size: 12px; color: #909399;">{{ msg.time.split(' ')[1] }}</span>
+                                        </div>
+                                        <div style="font-size: 13px; color: #606266; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ msg.lastMsg }}</div>
+                                        <div v-if="msg.status === '未回复'" style="position: absolute; right: 15px; bottom: 15px; width: 8px; height: 8px; background: #f56c6c; border-radius: 50%;"></div>
+                                    </div>
+                                </el-scrollbar>
+                            </div>
+
+                            <!-- 右侧：聊天窗口 -->
+                            <div v-if="activeMessage" style="flex: 1; display: flex; flex-direction: column; background: #f8f9fb;">
+                                <!-- 聊天头 -->
+                                <div style="padding: 15px 25px; background: #fff; border-bottom: 1px solid #f0f2f5; display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <span style="font-size: 16px; font-weight: bold; color: #303133;">{{ activeMessage.patientName }}</span>
+                                        <el-tag size="small" type="success" effect="plain">随访中</el-tag>
+                                    </div>
+                                    <el-button link type="primary" @click="openPatientDetail(activeMessage)">查看患者详情</el-button>
+                                </div>
+
+                                <!-- 对话历史区 -->
+                                <el-scrollbar ref="chatScrollRef" style="flex: 1; padding: 25px;">
+                                    <div v-for="(h, i) in activeMessage.history" :key="i" 
+                                         style="display: flex; margin-bottom: 25px;"
+                                         :style="{ justifyContent: h.role === 'patient' ? 'flex-start' : 'flex-end' }">
+                                        
+                                        <!-- 患者头像 -->
+                                        <div v-if="h.role === 'patient'" style="width: 36px; height: 36px; border-radius: 50%; background: #e0f2ff; color: #409eff; display: flex; align-items: center; justify-content: center; margin-right: 12px; flex-shrink: 0;">
+                                            <i class="fa-solid fa-user"></i>
+                                        </div>
+
+                                        <div style="max-width: 65%;">
+                                            <div style="font-size: 12px; color: #909399; margin-bottom: 6px;" :style="{ textAlign: h.role === 'patient' ? 'left' : 'right' }">
+                                                {{ h.role === 'patient' ? activeMessage.patientName : '随访专员' }} · {{ h.time }}
+                                            </div>
+                                            <div :style="{
+                                                padding: '12px 16px',
+                                                borderRadius: h.role === 'patient' ? '0 16px 16px 16px' : '16px 0 16px 16px',
+                                                background: h.role === 'patient' ? '#fff' : '#409eff',
+                                                color: h.role === 'patient' ? '#303133' : '#fff',
+                                                fontSize: '14px',
+                                                lineHeight: '1.6',
+                                                boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                                            }">
+                                                {{ h.content }}
+                                            </div>
+                                        </div>
+
+                                        <!-- 专员头像 -->
+                                        <div v-if="h.role === 'helper'" style="width: 36px; height: 36px; border-radius: 50%; background: #409eff; color: #fff; display: flex; align-items: center; justify-content: center; margin-left: 12px; flex-shrink: 0;">
+                                            <i class="fa-solid fa-headset"></i>
+                                        </div>
+                                    </div>
+                                </el-scrollbar>
+
+                                <!-- 输入区 -->
+                                <div style="padding: 20px 25px; background: #fff; border-top: 1px solid #f0f2f5;">
+                                    <div style="display: flex; gap: 15px; align-items: flex-end;">
+                                        <el-input 
+                                            type="textarea" 
+                                            :rows="3" 
+                                            v-model="replyContent" 
+                                            placeholder="请输入回复内容..."
+                                            resize="none"
+                                            @keyup.ctrl.enter="handleReplyMessage"
+                                        />
+                                        <el-button type="primary" size="large" @click="handleReplyMessage" :disabled="!replyContent.trim()">回复 (Ctrl+Enter)</el-button>
+                                    </div>
+                                    <div style="margin-top: 10px; display: flex; gap: 15px;">
+                                        <el-link :underline="false" style="font-size: 13px;"><i class="fa-solid fa-image" style="margin-right: 5px;"></i> 图片</el-link>
+                                        <el-link :underline="false" style="font-size: 13px;" @click="scriptDrawerVisible = true"><i class="fa-solid fa-file-invoice" style="margin-right: 5px;"></i> 话术库</el-link>
+                                    </div>
+                                </div>
+
+                                <!-- 话术库侧边抽屉 -->
+                                <el-drawer
+                                    v-model="scriptDrawerVisible"
+                                    title="项目话术库"
+                                    direction="rtl"
+                                    size="400px"
+                                    :with-header="true"
+                                >
+                                    <div style="padding: 0 10px;">
+                                        <el-input 
+                                            v-model="scriptSearchKeyword" 
+                                            placeholder="搜索话术标题或内容..." 
+                                            prefix-icon="Search"
+                                            clearable
+                                            style="margin-bottom: 20px;"
+                                        ></el-input>
+                                        <div v-if="scriptList.length > 0">
+                                            <div v-for="s in scriptList" :key="s.id" 
+                                                 @click="useScript(s)"
+                                                 style="padding: 15px; border: 1px solid #ebeef5; border-radius: 8px; margin-bottom: 15px; cursor: pointer; transition: all 0.3s; background: #fff;"
+                                                 onmouseover="this.style.borderColor='#409eff';this.style.background='#f0f7ff'"
+                                                 onmouseout="this.style.borderColor='#ebeef5';this.style.background='#fff'">
+                                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                                    <span style="font-weight: 600; color: #303133; font-size: 14px;">{{ s.title }}</span>
+                                                    <el-tag size="small" type="info" effect="plain">{{ s.code }}</el-tag>
+                                                </div>
+                                                <div style="font-size: 12px; color: #909399; margin-bottom: 8px; display: flex; gap: 8px;">
+                                                    <span>{{ s.productName }}</span>
+                                                    <span>|</span>
+                                                    <span>{{ s.indication }}</span>
+                                                </div>
+                                                <div style="font-size: 13px; color: #606266; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" v-html="s.content"></div>
+                                            </div>
+                                        </div>
+                                        <el-empty v-else description="暂无匹配话术"></el-empty>
+                                    </div>
+                                </el-drawer>
+                            </div>
+
+                            <!-- 未选中时的占位 -->
+                            <div v-else style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8f9fb; color: #909399;">
+                                <i class="fa-solid fa-comment-dots" style="font-size: 60px; margin-bottom: 20px; opacity: 0.2;"></i>
+                                <span>请从左侧选择一个对话进行回复</span>
+                            </div>
+                        </div>
 
                         <!-- 占位符 (其他页面陆续迁移) -->
                         <div v-else id="content-container"></div>

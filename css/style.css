@@ -9,7 +9,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif; background-color: #f0f2f5; overflow: hidden; /* 防止出现整个页面的双滚动条 */ }
 
-[v-cloak] { display: none; }
+[v-cloak] { display: none !important; }
 
 #app { height: 100vh; overflow: hidden; }
 .layout-container { height: 100vh; display: flex; }

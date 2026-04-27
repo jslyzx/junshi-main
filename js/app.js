@@ -17,7 +17,7 @@ const app = createApp({
         });
 
         const isCommonPage = computed(() => {
-            return MOCK_DATA[activePath.value] && activePath.value !== 'base-data';
+            return MOCK_DATA[activePath.value] && activePath.value !== 'base-data' && activePath.value !== 'message-manage';
         });
 
         const isArticlePage = computed(() => {
@@ -636,6 +636,78 @@ const app = createApp({
             renderCurrentPage();
         };
 
+        // 留言管理逻辑
+        const messageSearchKeyword = ref('');
+        const activeMessage = ref(null);
+        const replyContent = ref('');
+        const chatScrollRef = ref(null);
+        const isChatMode = ref(false); // 是否处于聊天模式
+        const scriptDrawerVisible = ref(false); // 话术库侧边栏
+        const scriptSearchKeyword = ref('');
+
+        const scriptList = computed(() => {
+            const list = MOCK_DATA['scripts']?.data || [];
+            if (!scriptSearchKeyword.value) return list;
+            return list.filter(s => s.title.includes(scriptSearchKeyword.value) || s.content.includes(scriptSearchKeyword.value));
+        });
+
+        const useScript = (script) => {
+            // 简单处理下 HTML 标签（如果有的话）
+            let text = script.content.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
+            
+            // 提取“建议话术”中的实际回复内容
+            const match = text.match(/建议话术：[“"'](.*?)['"”]/);
+            if (match && match[1]) {
+                text = match[1];
+            } else if (text.includes('建议话术：')) {
+                text = text.split('建议话术：')[1].trim();
+            }
+
+            replyContent.value = text;
+            scriptDrawerVisible.value = false;
+        };
+
+        const filteredMessages = computed(() => {
+            const list = MOCK_DATA['message-manage']?.data || [];
+            if (!messageSearchKeyword.value) return list;
+            return list.filter(m => m.patientName.includes(messageSearchKeyword.value));
+        });
+
+        const selectMessage = (msg) => {
+            activeMessage.value = msg;
+            replyContent.value = '';
+            isChatMode.value = true; // 进入聊天模式
+            // 延迟滚动到底部
+            setTimeout(() => {
+                if (chatScrollRef.value) {
+                    chatScrollRef.value.setScrollTop(10000);
+                }
+            }, 100);
+        };
+
+        const handleReplyMessage = () => {
+            if (!replyContent.value.trim() || !activeMessage.value) return;
+            
+            const newReply = {
+                role: 'helper',
+                content: replyContent.value,
+                time: new Date().toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-')
+            };
+            
+            activeMessage.value.history.push(newReply);
+            activeMessage.value.lastMsg = replyContent.value;
+            activeMessage.value.status = '已回复';
+            replyContent.value = '';
+
+            setTimeout(() => {
+                if (chatScrollRef.value) {
+                    chatScrollRef.value.setScrollTop(10000);
+                }
+            }, 50);
+
+            ElementPlus.ElMessage.success('回复已发送');
+        };
+
         // 页面渲染分发逻辑
         const renderCurrentPage = () => {
             loading.value = true;
@@ -645,22 +717,14 @@ const app = createApp({
                     tableData.value = MOCK_DATA[activePath.value].data;
                 }
                 
+                // 仅 article 页面需要手动渲染到 content-container
                 const container = document.getElementById('content-container');
-                if (!container) {
-                    loading.value = false;
-                    return;
+                if (container && activePath.value.startsWith('article-')) {
+                    renderArticlePageVue(container, activePath.value);
                 }
                 
-                if (activePath.value.startsWith('article-')) {
-                    renderArticlePageVue(container, activePath.value);
-                } else if (isBaseDataPage.value) {
-                    // 基础数据页面通过 Vue 模板渲染，不再使用 innerHTML
-                    container.innerHTML = '';
-                } else {
-                    container.innerHTML = '';
-                }
                 loading.value = false;
-            }, 300);
+            }, 100);
         };
 
         onMounted(() => {
@@ -696,7 +760,9 @@ const app = createApp({
             executeFormSections, executeActiveSection, executeProgress,
             scrollToSection, handleExecuteTask, handleFormScroll,
             handleExecuteConfirm,
-            dictGroups, activeDictGroup, dictItems
+            dictGroups, activeDictGroup, dictItems,
+            messageSearchKeyword, activeMessage, replyContent, chatScrollRef, filteredMessages, selectMessage, handleReplyMessage, isChatMode,
+            scriptDrawerVisible, scriptSearchKeyword, scriptList, useScript
         };
     }
 });
