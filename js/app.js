@@ -171,9 +171,19 @@ const app = createApp({
             if (index === 'home') {
                 title = '首页';
             } else {
-                menuConfig.value.forEach(g => g.children.forEach(c => {
-                    if (c.id === index) title = c.title;
-                }));
+                // 优先查找二级菜单
+                menuConfig.value.forEach(g => {
+                    if (g.children && g.children.length > 0) {
+                        g.children.forEach(c => {
+                            if (c.id === index) title = c.title;
+                        });
+                    }
+                });
+                // 如果没找到，则查找一级菜单 (针对新拆分的患教/培训管理)
+                if (!title) {
+                    const group = menuConfig.value.find(g => g.id === index);
+                    if (group) title = group.title;
+                }
             }
             navigate(index, title);
         };
@@ -213,6 +223,10 @@ const app = createApp({
                 'config': 'fa-gears',
                 'project': 'fa-folder-tree',
                 'article': 'fa-file-lines',
+                'article-patient': 'fa-book-open-reader',
+                'article-specialist': 'fa-chalkboard-user',
+                'followup-task': 'fa-calendar-check',
+                'patient-list': 'fa-hospital-user',
                 'patient': 'fa-hospital-user',
                 'followup': 'fa-calendar-check'
             };

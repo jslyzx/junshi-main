@@ -316,18 +316,14 @@ const MOCK_DATA = {
 
 const MENU_CONFIG = [
     {
-        title: '随访管理',
-        id: 'followup',
-        children: [
-            { title: '随访任务', id: 'followup-task' }
-        ]
+        title: '随访任务',
+        id: 'followup-task',
+        children: []
     },
     {
-        title: '患者管理',
-        id: 'patient',
-        children: [
-            { title: '患者列表', id: 'patient-list' }
-        ]
+        title: '患者列表',
+        id: 'patient-list',
+        children: []
     },
     {
         title: '基础信息管理',
@@ -369,12 +365,14 @@ const MENU_CONFIG = [
         ]
     },
     {
-        title: '文章管理',
-        id: 'article',
-        children: [
-            { title: '患者教育', id: 'article-patient' },
-            { title: '项目专员教育', id: 'article-specialist' }
-        ]
+        title: '患教管理',
+        id: 'article-patient',
+        children: []
+    },
+    {
+        title: '培训管理',
+        id: 'article-specialist',
+        children: []
     }
 ];
 
