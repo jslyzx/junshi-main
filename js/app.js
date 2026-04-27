@@ -118,6 +118,44 @@ const app = createApp({
             navigate(tabId, '执行随访');
         };
 
+        const handleExecuteConfirm = () => {
+            ElementPlus.ElMessageBox.confirm(
+                '智能识别当前患者存在异常事件：减量服药，是否上报主治医生？',
+                '智能识别提示',
+                {
+                    confirmButtonText: '是',
+                    cancelButtonText: '否',
+                    type: 'warning',
+                    distinguishCancelAndClose: true
+                }
+            ).then(() => {
+                // 选择“是”
+                ElementPlus.ElMessage({
+                    type: 'success',
+                    message: '上报完成并已记录',
+                });
+                handleTabRemove(activePath.value);
+                handleMenuSelect('followup-task');
+            }).catch((action) => {
+                if (action === 'cancel') {
+                    // 选择“否”
+                    ElementPlus.ElMessageBox.prompt('请填写不上报原因', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        inputPattern: /.+/,
+                        inputErrorMessage: '原因不能为空'
+                    }).then(({ value }) => {
+                        ElementPlus.ElMessage({
+                            type: 'info',
+                            message: '已记录不上报原因：' + value,
+                        });
+                        handleTabRemove(activePath.value);
+                        handleMenuSelect('followup-task');
+                    });
+                }
+            });
+        };
+
         // 字典数据
         const dictGroups = ref([
             { name: '适应性子项', code: 'adaptability' },
@@ -657,6 +695,7 @@ const app = createApp({
             executeTaskData, executeActiveTab, executePersonalExpanded,
             executeFormSections, executeActiveSection, executeProgress,
             scrollToSection, handleExecuteTask, handleFormScroll,
+            handleExecuteConfirm,
             dictGroups, activeDictGroup, dictItems
         };
     }

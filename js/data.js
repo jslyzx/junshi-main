@@ -311,6 +311,21 @@ const MOCK_DATA = {
             { id: 8, status: '执行失败', patientId: 'a1d32247-b34b-46f...', patientName: '刘*宏', phone: '130****6562', planDate: '2026-03-20', firstPurchase: '2025-11-05', product: '特瑞普利单抗注射液', indication: '胃癌', taskId: 'F260320100002121', serviceSummary: '复购随访', overdue: '', executor: '王药师', execDate: '2026-03-21 11:00:00', createDate: '2026-03-15 09:00:00' },
             { id: 3, status: '已完成', patientId: 'cabb7523-21c1-40a...', patientName: '高*星', phone: '133****9515', planDate: '2026-03-26', firstPurchase: '2024-07-16', product: '特瑞普利单抗注射液', indication: '结直肠癌', taskId: 'F260323100005104', serviceSummary: '召回随访', overdue: '', executor: '测试药师', execDate: '2026-03-27 22:12:13', createDate: '2026-03-23 03:00:01' }
         ]
+    },
+    'satisfaction-report': {
+        columns: [
+            { label: '评价时间', key: 'time' },
+            { label: '患者姓名', key: 'patient' },
+            { label: '专员评价', key: 'specialistScore' },
+            { label: '专员姓名', key: 'specialistName' },
+            { label: '中心评价', key: 'centerScore' },
+            { label: '评价内容', key: 'content' }
+        ],
+        data: [
+            { id: 1, time: '2026-04-26 14:20:00', patient: '吴*珍', specialistScore: 5, specialistName: '王专员', centerScore: 5, content: '非常感谢专员的指导，随访很及时。' },
+            { id: 2, time: '2026-04-25 10:15:00', patient: '张*', specialistScore: 4, specialistName: '王专员', centerScore: 5, content: '服务态度很好，就是回访电话稍微有点晚。' },
+            { id: 3, time: '2026-04-24 16:30:00', patient: '齐*', specialistScore: 5, specialistName: '赵专员', centerScore: 4, content: '随访中心的服务很专业，非常有帮助。' }
+        ]
     }
 };
 
@@ -361,7 +376,8 @@ const MENU_CONFIG = [
             { title: '问卷模块', id: 'questionnaire' },
             { title: '项目适应症', id: 'indications' },
             { title: '项目话术', id: 'scripts' },
-            { title: '随访率统计', id: 'followup-rate' }
+            { title: '随访率统计', id: 'followup-rate' },
+            { title: '满意度报表', id: 'satisfaction-report' }
         ]
     },
     {
