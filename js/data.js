@@ -405,7 +405,7 @@ const MENU_CONFIG = [
 // 文章管理分类配置
 const ARTICLE_CATEGORIES = {
     'article-patient': ['疾病知识', '健康资讯', '专家讲座', '视频教育'],
-    'article-specialist': ['疾病基础', '产品知识', '合规要求', 'AE/PV', '沟通技巧', '系统操作']
+    'article-specialist': ['岗位职责', 'SOP 培训', '疾病基础', '产品知识', '合规要求', 'AE/PV', '沟通技巧', '系统操作']
 };
 
 // 文章管理模拟数据
@@ -423,6 +423,10 @@ const ARTICLE_DATA = {
         { id: 10, title: '食管癌的早期症状与筛查', category: '疾病知识', author: '李医生', status: '已发布', publishDate: '2026-04-03', views: 1567, content: '' }
     ],
     'article-specialist': [
+        { id: 1001, title: '临床项目专员 (Helper) 岗位职责说明书', category: '岗位职责', author: '培训部', status: '已发布', publishDate: '2024-04-25', views: 1250, content: '明确 Helper 在项目中的核心定位、职责范围及日常工作汇报线。' },
+        { id: 1002, title: '项目专员月度考核指标 (KPI) 详解', category: '岗位职责', author: '培训部', status: '已发布', publishDate: '2024-04-20', views: 980, content: '深度解析入组率、随访及时率及数据准确性等关键考核维度的计算方法。' },
+        { id: 1003, title: '现场入组 SOP：从扫码到签字的标准流程', category: 'SOP 培训', author: '培训部', status: '已发布', publishDate: '2024-04-22', views: 1560, content: '规范现场入组的每一步操作，确保知情同意书签署的合规性与资料上传的完整性。' },
+        { id: 1004, title: '异常回流处理 SOP：AE 事件的识别与归档', category: 'SOP 培训', author: '培训部', status: '已发布', publishDate: '2024-04-18', views: 1120, content: '当系统触发异常回流时，专员应如何协助医生补充临床证据并完成数据上报。' },
         { id: 1, title: '常见肿瘤分期与治疗路径概述', category: '疾病基础', author: '医学部', status: '已发布', publishDate: '2026-04-22', views: 345, content: '肿瘤分期是评估肿瘤严重程度和制定治疗方案的重要依据。\n\nTNM分期系统：\n- T（Tumor）：原发肿瘤的大小和范围\n- N（Node）：区域淋巴结转移情况\n- M（Metastasis）：远处转移情况\n\n治疗路径通常包括：手术、放疗、化疗、靶向治疗、免疫治疗等，根据分期和患者状况制定个体化方案。' },
         { id: 2, title: '特瑞普利单抗注射液产品手册', category: '产品知识', author: '产品部', status: '已发布', publishDate: '2026-04-20', views: 567, content: '特瑞普利单抗注射液（商品名：拓益）是我国首个获批上市的国产PD-1单抗药物。\n\n获批适应症包括：鼻咽癌、黑色素瘤、尿路上皮癌、非小细胞肺癌、食管鳞癌等。\n\n用法用量：3mg/kg，每2周给药一次，静脉输注。\n\n储存条件：2-8°C避光保存。' },
         { id: 3, title: '患者随访过程中的合规注意事项', category: '合规要求', author: '合规部', status: '已发布', publishDate: '2026-04-18', views: 234, content: '' },

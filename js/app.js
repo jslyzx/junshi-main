@@ -532,7 +532,7 @@ const app = createApp({
         const currentColumns = computed(() => (MOCK_DATA[activePath.value] || {}).columns || []);
 
         const articleVisible = ref(false);
-        const articleTitle = ref('新增文章');
+        const articleTitle = ref('新增');
         const articleForm = reactive({ id: null, title: '', category: '', author: '', content: '', status: '草稿' });
         const currentCategories = computed(() => ARTICLE_CATEGORIES[activePath.value] || []);
         
@@ -560,7 +560,7 @@ const app = createApp({
         };
 
         const openArticleModal = () => {
-            articleTitle.value = '新增文章';
+            articleTitle.value = '新增';
             Object.assign(articleForm, { id: null, title: '', category: currentCategories.value[0], author: '管理员', content: '', status: '草稿' });
             articleVisible.value = true;
         };
@@ -911,7 +911,7 @@ function renderArticlePageVue(container, id) {
 
     const renderToolbar = () => `
         <div class="toolbar" style="margin-bottom: 15px;">
-            <button class="el-button el-button--primary el-button--small" onclick="openArticleModal()">+ 新增文章</button>
+            <button class="el-button el-button--primary el-button--small" onclick="openArticleModal()">+ 新增</button>
         </div>
     `;
 
