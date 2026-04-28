@@ -277,8 +277,8 @@ const app = createApp({
 
         // 数据状态
         const taskStats = ref([
-            { label: '今日任务', value: 3, icon: 'fa-clipboard-list', color: '#409EFF', bg: 'linear-gradient(135deg, #e0f2ff 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(64,158,255,0.15)' },
-            { label: '本月待执行', value: 12, icon: 'fa-hourglass-half', color: '#E6A23C', bg: 'linear-gradient(135deg, #fff7e6 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(230,162,60,0.15)' },
+            { label: '总入组目标', value: 1150, icon: 'fa-clipboard-list', color: '#409EFF', bg: 'linear-gradient(135deg, #e0f2ff 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(64,158,255,0.15)' },
+            { label: '已入组人数', value: 350, icon: 'fa-hourglass-half', color: '#E6A23C', bg: 'linear-gradient(135deg, #fff7e6 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(230,162,60,0.15)' },
             { label: '即将到期', value: 5, icon: 'fa-calendar-days', color: '#F56C6C', bg: 'linear-gradient(135deg, #fff1f0 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(245,108,108,0.15)' },
             { label: '本月已超期', value: 2, icon: 'fa-triangle-exclamation', color: '#F56C6C', bg: 'linear-gradient(135deg, #fff1f0 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(245,108,108,0.15)' },
             { label: '今日已完成', value: 8, icon: 'fa-circle-check', color: '#67C23A', bg: 'linear-gradient(135deg, #f6ffed 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(103,194,58,0.15)' }
