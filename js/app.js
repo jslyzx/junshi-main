@@ -17,7 +17,7 @@ const app = createApp({
         });
 
         const isCommonPage = computed(() => {
-            return MOCK_DATA[activePath.value] && activePath.value !== 'base-data' && activePath.value !== 'message-manage';
+            return MOCK_DATA[activePath.value] && activePath.value !== 'base-data' && activePath.value !== 'message-manage' && activePath.value !== 'consent-version';
         });
 
         const isArticlePage = computed(() => {
@@ -35,6 +35,13 @@ const app = createApp({
         const isPatientDetailPage = computed(() => {
             return activePath.value.startsWith('patient-detail-');
         });
+
+        const isConsentVersionPage = computed(() => activePath.value === 'consent-version');
+
+        const consentViewVisible = ref(false);
+        const consentViewData = ref({});
+        const consentVersionData = ref([]);
+        const consentSearchKeyword = ref('');
 
         // 患者详情页面数据
         const patientDetailData = ref({});
@@ -547,6 +554,8 @@ const app = createApp({
             if (id === 'project-followup') {
                 editForm.value.name = '';
                 editForm.value.remark = '';
+            } else if (id === 'consent-version') {
+                editForm.value = { version: '', name: '', project: '', content: '', status: '草稿' };
             } else {
                 currentColumns.value.forEach(col => editForm.value[col.key] = '');
             }
@@ -557,6 +566,27 @@ const app = createApp({
             editTitle.value = '编辑';
             editForm.value = { ...row };
             editVisible.value = true;
+        };
+
+        const openConsentView = (row) => {
+            consentViewData.value = { ...row };
+            consentViewVisible.value = true;
+        };
+
+        const publishConsentVersion = (row) => {
+            ElementPlus.ElMessageBox.confirm('确认发布该版本？', '发布确认', {
+                confirmButtonText: '确认发布',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                const data = MOCK_DATA['consent-version'].data;
+                const index = data.findIndex(item => item.id === row.id);
+                if (index > -1) {
+                    data[index].status = '已发布';
+                    consentVersionData.value = [...data];
+                    ElementPlus.ElMessage.success('发布成功');
+                }
+            }).catch(() => {});
         };
 
         const openArticleModal = () => {
@@ -717,6 +747,11 @@ const app = createApp({
                     tableData.value = MOCK_DATA[activePath.value].data;
                 }
                 
+                // 版本管理页面
+                if (activePath.value === 'consent-version') {
+                    consentVersionData.value = MOCK_DATA['consent-version'].data;
+                }
+
                 // 仅 article 页面需要手动渲染到 content-container
                 const container = document.getElementById('content-container');
                 if (container && activePath.value.startsWith('article-')) {
@@ -736,6 +771,7 @@ const app = createApp({
             menuConfig, activePath, openTags, loading,
             currentTitle, handleMenuSelect, handleTabClick, handleTabRemove, getGroupIcon, handleUserCommand,
             editVisible, editTitle, editForm, currentColumns, editFormRef,
+            isConsentVersionPage, consentViewVisible, consentViewData, consentVersionData, consentSearchKeyword, openConsentView, publishConsentVersion,
             articleVisible, articleTitle, articleForm, currentCategories,
             articlePreviewVisible, previewArticleData, handleArticleAction,
             hospitalVisible, hospitalSearchKeyword, hospitalData, hospitalSelection, hospitalPage, hospitalPageSize, hospitalTotal,

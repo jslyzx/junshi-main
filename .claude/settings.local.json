@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell:*)",
+      "Bash(python3:*)",
+      "Bash(python -:*)",
+      "Bash(Get-Content:*)",
+      "Bash(Select-Object -First 50)",
+      "Bash(ForEach-Object { $i++)",
+      "Bash(node --version:*)",
+      "Bash(python:*)",
+      "Bash(cmd /c:*)"
+    ]
+  }
+}

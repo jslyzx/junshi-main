@@ -846,6 +846,39 @@
                             </div>
                         </div>
 
+                        <!-- 版本管理页面 -->
+                        <div v-else-if="activePath === 'consent-version'" class="page-common">
+                            <div class="table-area" style="background: #fff; padding: 15px 20px; border-radius: 4px; border: 1px solid #ebeef5;">
+                                <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="display: flex; align-items: center; gap: 15px;">
+                                        <span style="font-size: 14px; color: #606266;">版本名称</span>
+                                        <el-input v-model="consentSearchKeyword" placeholder="搜索版本名称" style="width: 240px" clearable></el-input>
+                                        <el-button type="primary">搜索</el-button>
+                                        <el-button>重置</el-button>
+                                    </div>
+                                    <el-button type="primary" @click="openAddModal('consent-version')">新建版本</el-button>
+                                </div>
+                                <el-table :data="consentVersionData" style="width: 100%" :header-cell-style="{background:'#f8f8f9', color:'#515a6e', fontWeight: 'bold'}" border>
+                                    <el-table-column prop="version" label="版本号" width="120"></el-table-column>
+                                    <el-table-column prop="name" label="版本名称" min-width="200"></el-table-column>
+                                    <el-table-column prop="project" label="适用项目" min-width="180"></el-table-column>
+                                    <el-table-column prop="status" label="状态" width="100">
+                                        <template #default="scope">
+                                            <el-tag :type="scope.row.status === '已发布' ? 'success' : scope.row.status === '草稿' ? 'info' : 'danger'" size="small">{{ scope.row.status }}</el-tag>
+                                        </template>
+                                    </el-table-column>
+                                    <el-table-column prop="createTime" label="创建时间" width="120"></el-table-column>
+                                    <el-table-column label="操作" width="200" fixed="right">
+                                        <template #default="scope">
+                                            <el-button type="primary" link size="small" @click="openConsentView(scope.row)">查看</el-button>
+                                            <el-button type="primary" link size="small" @click="openEditModal(scope.row)" :disabled="scope.row.status === '已发布'">编辑</el-button>
+                                            <el-button v-if="scope.row.status === '草稿'" type="success" link size="small" @click="publishConsentVersion(scope.row)">发布</el-button>
+                                        </template>
+                                    </el-table-column>
+                                </el-table>
+                            </div>
+                        </div>
+
                         <!-- 占位符 (其他页面陆续迁移) -->
                         <div v-else id="content-container"></div>
                     </div>
@@ -891,6 +924,31 @@
                         <el-input v-model="editForm.score" placeholder="请输入分值"></el-input>
                     </el-form-item>
                 </template>
+                <template v-else-if="activePath === 'consent-version'">
+                    <el-form-item label="版本号" prop="version" :rules="[{ required: true, message: '请输入版本号', trigger: 'blur' }]">
+                        <el-input v-model="editForm.version" placeholder="如：V1.0"></el-input>
+                    </el-form-item>
+                    <el-form-item label="版本名称" prop="name" :rules="[{ required: true, message: '请输入版本名称', trigger: 'blur' }]">
+                        <el-input v-model="editForm.name" placeholder="请输入版本名称"></el-input>
+                    </el-form-item>
+                    <el-form-item label="适用项目" prop="project">
+                        <el-select v-model="editForm.project" placeholder="请选择适用项目" style="width: 100%">
+                            <el-option label="拓益（特瑞普利单抗注射液）" value="拓益（特瑞普利单抗注射液）"></el-option>
+                            <el-option label="达伯舒（信迪利单抗注射液）" value="达伯舒（信迪利单抗注射液）"></el-option>
+                            <el-option label="通用" value="通用"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="知情同意书内容" prop="content">
+                        <el-input type="textarea" :rows="6" v-model="editForm.content" placeholder="请输入知情同意书内容"></el-input>
+                    </el-form-item>
+                    <el-form-item label="状态" prop="status">
+                        <el-select v-model="editForm.status" style="width: 100%">
+                            <el-option label="草稿" value="草稿"></el-option>
+                            <el-option label="已发布" value="已发布"></el-option>
+                            <el-option label="已废弃" value="已废弃"></el-option>
+                        </el-select>
+                    </el-form-item>
+                </template>
                 <template v-else>
                     <el-form-item v-for="col in currentColumns.filter(c => !['创建人', '创建时间', '更新人', '更新时间'].includes(c.label))" :key="col.key" :label="col.label">
                         <el-select v-if="col.key === 'status'" v-model="editForm[col.key]" style="width: 100%">
@@ -910,6 +968,24 @@
             </template>
         </el-dialog>
 
+
+        <!-- 知情同意书版本查看弹窗 -->
+        <el-dialog v-model="consentViewVisible" :title="consentViewData.name" width="600px">
+            <el-descriptions :column="2" border>
+                <el-descriptions-item label="版本号">{{ consentViewData.version }}</el-descriptions-item>
+                <el-descriptions-item label="适用项目">{{ consentViewData.project }}</el-descriptions-item>
+                <el-descriptions-item label="状态">
+                    <el-tag :type="consentViewData.status === '已发布' ? 'success' : consentViewData.status === '草稿' ? 'info' : 'danger'" size="small">{{ consentViewData.status }}</el-tag>
+                </el-descriptions-item>
+                <el-descriptions-item label="创建时间">{{ consentViewData.createTime }}</el-descriptions-item>
+                <el-descriptions-item label="知情同意书内容" :span="2">
+                    <div style="white-space: pre-wrap; line-height: 1.8;">{{ consentViewData.content }}</div>
+                </el-descriptions-item>
+            </el-descriptions>
+            <template #footer>
+                <el-button @click="consentViewVisible = false">关闭</el-button>
+            </template>
+        </el-dialog>
         <!-- 文章编辑弹窗 -->
         <el-dialog v-model="articleVisible" :title="articleTitle" width="800px">
             <el-form :model="articleForm" label-width="80px">
