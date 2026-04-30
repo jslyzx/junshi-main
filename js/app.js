@@ -273,7 +273,8 @@ const app = createApp({
                 'followup-task': 'fa-calendar-check',
                 'patient-list': 'fa-hospital-user',
                 'patient': 'fa-hospital-user',
-                'followup': 'fa-calendar-check'
+                'followup': 'fa-calendar-check',
+                'complaint-manage': 'fa-bullhorn'
             };
             return icons[id] || 'fa-folder';
         };

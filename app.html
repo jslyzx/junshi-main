@@ -323,6 +323,8 @@
                                                     
                                                     <el-tag v-else-if="scope.row.status === '待执行'" type="info" size="small">{{ scope.row.status }}</el-tag>
                                                     <el-tag v-else-if="scope.row.status === '已完成'" type="success" size="small">{{ scope.row.status }}</el-tag>
+                                                    <el-tag v-else-if="scope.row.status === '待处理'" type="warning" size="small">{{ scope.row.status }}</el-tag>
+                                                    <el-tag v-else-if="scope.row.status === '已处理'" type="success" size="small">{{ scope.row.status }}</el-tag>
                                                     <el-tag v-else :type="scope.row.status === '启用' ? 'success' : 'info'" size="small">{{ scope.row.status }}</el-tag>
                                                 </template>
                                                 <span v-else>{{ scope.row[col.key] }}</span>

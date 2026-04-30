@@ -336,6 +336,19 @@ const MOCK_DATA = {
             ]}
         ]
     },
+    'complaint-manage': {
+        columns: [
+            { label: '投诉时间', key: 'time' },
+            { label: '患者姓名', key: 'patient' },
+            { label: '投诉对象', key: 'target' },
+            { label: '投诉内容', key: 'content' },
+            { label: '状态', key: 'status' }
+        ],
+        data: [
+            { id: 1, time: '2026-04-30 14:10:00', patient: '李*强', target: '项目专员', content: '专员回复消息比较慢，希望可以改进。', status: '待处理' },
+            { id: 2, time: '2026-04-29 09:30:00', patient: '王*平', target: '随访中心', content: '咨询电话打了几次才通。', status: '已处理' }
+        ]
+    },
     'consent-version': {
         columns: [
             { label: '版本号', key: 'version' },
@@ -400,7 +413,8 @@ const MENU_CONFIG = [
             { title: '项目话术', id: 'scripts' },
             { title: '随访率统计', id: 'followup-rate' },
             { title: '满意度报表', id: 'satisfaction-report' },
-            { title: '留言管理', id: 'message-manage' }
+            { title: '留言管理', id: 'message-manage' },
+            { title: '投诉管理', id: 'complaint-manage' }
         ]
     },
     {
