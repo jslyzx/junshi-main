@@ -237,6 +237,10 @@ const app = createApp({
             if (!openTags.value.find(tag => tag.id === id)) {
                 openTags.value.push({ id, title });
             }
+            // 切换页面时重置聊天模式，除非是留言管理
+            if (id !== 'message-manage') {
+                isChatMode.value = false;
+            }
             activePath.value = id;
             window.location.hash = id;
             renderCurrentPage();
@@ -271,6 +275,7 @@ const app = createApp({
                 'article-patient': 'fa-book-open-reader',
                 'article-specialist': 'fa-chalkboard-user',
                 'followup-task': 'fa-calendar-check',
+                'exception-manage': 'fa-triangle-exclamation',
                 'patient-list': 'fa-hospital-user',
                 'patient': 'fa-hospital-user',
                 'followup': 'fa-calendar-check',
@@ -739,6 +744,112 @@ const app = createApp({
             ElementPlus.ElMessage.success('回复已发送');
         };
 
+        // 异常管理逻辑
+        const exceptionVisible = ref(false);
+        const exceptionTypeFilter = ref('');
+        const exceptionForm = ref({
+            patientName: '',
+            patientId: '',
+            type: 'AE',
+            description: '',
+            occurDate: new Date(),
+            remark: ''
+        });
+        const exceptionFormRef = ref(null);
+        const patientOptions = ref([]);
+        const patientSearchLoading = ref(false);
+
+        const openExceptionModal = () => {
+            exceptionForm.value = {
+                patientName: '',
+                patientId: '',
+                type: 'AE',
+                description: '',
+                occurDate: new Date(),
+                remark: ''
+            };
+            exceptionVisible.value = true;
+        };
+
+        const remoteSearchPatient = (query) => {
+            if (query) {
+                patientSearchLoading.value = true;
+                setTimeout(() => {
+                    patientSearchLoading.value = false;
+                    const list = MOCK_DATA['patient-list'].data;
+                    patientOptions.value = list.filter(item => {
+                        return item.name.toLowerCase().includes(query.toLowerCase());
+                    });
+                }, 200);
+            } else {
+                patientOptions.value = [];
+            }
+        };
+
+        const selectExceptionPatient = (item) => {
+            exceptionForm.value.patientId = item.patientId;
+        };
+
+        const handleExceptionSave = () => {
+            exceptionFormRef.value.validate((valid) => {
+                if (valid) {
+                    const newReport = {
+                        id: Date.now(),
+                        reportDate: new Date().toISOString().split('T')[0],
+                        patientName: exceptionForm.value.patientName,
+                        patientId: exceptionForm.value.patientId,
+                        type: exceptionForm.value.type,
+                        description: exceptionForm.value.description,
+                        status: '待处理',
+                        reporter: '超级管理员',
+                        updateTime: new Date().toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-')
+                    };
+                    MOCK_DATA['exception-manage'].data.unshift(newReport);
+                    ElementPlus.ElMessage.success('异常事件已成功上报');
+                    exceptionVisible.value = false;
+                    renderCurrentPage();
+                }
+            });
+        };
+
+        const handleExceptionAction = (action, row) => {
+            if (action === '详情') {
+                ElementPlus.ElMessageBox.alert(
+                    `<div style="line-height: 2;">
+                        <div><b>患者姓名：</b>${row.patientName}</div>
+                        <div><b>异常类型：</b>${row.type}</div>
+                        <div><b>上报日期：</b>${row.reportDate}</div>
+                        <div><b>事件描述：</b>${row.description}</div>
+                        <div><b>当前状态：</b>${row.status}</div>
+                        <div><b>上报人：</b>${row.reporter}</div>
+                        <div><b>更新时间：</b>${row.updateTime}</div>
+                    </div>`,
+                    '异常事件详情',
+                    { dangerouslyUseHTMLString: true, confirmButtonText: '确定' }
+                );
+            } else if (action === '上报PV') {
+                ElementPlus.ElMessageBox.confirm('确定将该事件上报至指定PV渠道吗？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    row.status = '已上报PV';
+                    row.updateTime = new Date().toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-');
+                    ElementPlus.ElMessage.success('已上报PV渠道');
+                });
+            } else if (action === '解决') {
+                ElementPlus.ElMessageBox.confirm('确认该异常事件已解决并结案？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'success'
+                }).then(() => {
+                    row.status = '已解决';
+                    row.updateTime = new Date().toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-');
+                    ElementPlus.ElMessage.success('事件已解决');
+                });
+            }
+        };
+
         // 页面渲染分发逻辑
         const renderCurrentPage = () => {
             loading.value = true;
@@ -790,6 +901,11 @@ const app = createApp({
             taskStats, analysisStats, recentTasks, quickActions, systemNotices,
             homeTimeRange, currentTrendData,
             tableData, searchKeyword, handleAction,
+
+            exceptionVisible, exceptionTypeFilter, exceptionForm, exceptionFormRef,
+            patientOptions, patientSearchLoading,
+            openExceptionModal, remoteSearchPatient, selectExceptionPatient, 
+            handleExceptionSave, handleExceptionAction,
 
             isCommonPage, isArticlePage, isBaseDataPage, isExecutePage, isPatientDetailPage,
             patientDetailData, openPatientDetail,

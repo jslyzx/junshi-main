@@ -275,6 +275,22 @@
                                         <el-button type="primary">搜索</el-button>
                                         <el-button @click="messageSearchKeyword = ''">重置</el-button>
                                     </template>
+                                    <template v-else-if="activePath === 'exception-manage'">
+                                        <div style="display: flex; align-items: center; font-size: 14px; color: #606266;">
+                                            <span style="margin-right: 10px; font-weight: 500;">患者姓名</span>
+                                            <el-input v-model="searchKeyword" placeholder="搜索患者姓名" style="width: 200px" clearable></el-input>
+                                        </div>
+                                        <div style="display: flex; align-items: center; font-size: 14px; color: #606266;">
+                                            <span style="margin-right: 10px; font-weight: 500; margin-left: 20px;">异常类型</span>
+                                            <el-select v-model="exceptionTypeFilter" placeholder="全部" style="width: 150px" clearable>
+                                                <el-option label="AE" value="AE"></el-option>
+                                                <el-option label="SAE" value="SAE"></el-option>
+                                                <el-option label="药物安全信息" value="药物安全信息"></el-option>
+                                            </el-select>
+                                        </div>
+                                        <el-button type="primary" style="margin-left: 20px;">搜索</el-button>
+                                        <el-button @click="searchKeyword = ''; exceptionTypeFilter = ''">重置</el-button>
+                                    </template>
                                     <template v-else>
                                         <div style="display: flex; align-items: center; font-size: 14px; color: #606266;">
                                             <span style="margin-right: 10px; font-weight: 500;">项目名称</span>
@@ -288,7 +304,8 @@
                                 <!-- 操作区域和表格 -->
                                 <div class="table-area" style="background: #fff; padding: 15px 20px; border-radius: 4px; border: 1px solid #ebeef5;">
                                     <div style="margin-bottom: 15px; display: flex; justify-content: flex-end; align-items: center;">
-                                        <el-button v-if="activePath !== 'patient-list' && activePath !== 'satisfaction-report' && activePath !== 'message-manage'" type="primary" @click="openAddModal(activePath)">新增</el-button>
+                                        <el-button v-if="activePath === 'exception-manage'" type="danger" icon="Plus" @click="openExceptionModal">异常上报</el-button>
+                                        <el-button v-if="activePath !== 'patient-list' && activePath !== 'satisfaction-report' && activePath !== 'message-manage' && activePath !== 'exception-manage'" type="primary" @click="openAddModal(activePath)">新增</el-button>
                                         <el-button v-if="activePath === 'followup-task'" type="primary" plain style="margin-left: 10px;">导出</el-button>
                                         <div style="margin-left: 15px; display: flex; gap: 15px; color: #606266; font-size: 16px; cursor: pointer;">
                                             <i class="fa-solid fa-arrows-rotate" title="刷新"></i>
@@ -330,10 +347,17 @@
                                                 <span v-else>{{ scope.row[col.key] }}</span>
                                             </template>
                                         </el-table-column>
-                                        <el-table-column v-if="activePath !== 'patient-list' && activePath !== 'satisfaction-report'" label="操作" width="100" fixed="right" align="center">
+                                        <el-table-column v-if="activePath !== 'patient-list' && activePath !== 'satisfaction-report'" label="操作" width="150" fixed="right" align="center">
                                             <template #default="scope">
+                                                <!-- 异常管理：上报PV和解决 -->
+                                                <template v-if="activePath === 'exception-manage'">
+                                                    <el-button link type="primary" size="small" @click="handleExceptionAction('详情', scope.row)">查看详情</el-button>
+                                                    <el-button v-if="scope.row.status === '待处理'" link type="primary" size="small" @click="handleExceptionAction('上报PV', scope.row)">上报PV</el-button>
+                                                    <el-button v-if="scope.row.status !== '已解决'" link type="success" size="small" @click="handleExceptionAction('解决', scope.row)">解决</el-button>
+                                                    <span v-if="scope.row.status === '已解决'" style="color: #c0c4cc; font-size: 13px; margin-left: 10px;">已完成</span>
+                                                </template>
                                                 <!-- 随访任务：仅待执行和即将到期显示执行按钮 -->
-                                                <template v-if="activePath === 'followup-task'">
+                                                <template v-else-if="activePath === 'followup-task'">
                                                     <el-button v-if="scope.row.status === '待执行' || scope.row.status === '即将到期'" link type="primary" size="small" @click="handleAction('执行', scope.row)">执行</el-button>
                                                     <span v-else style="color: #c0c4cc; font-size: 13px;">—</span>
                                                 </template>
@@ -1304,11 +1328,58 @@
                     <el-input v-model="addRuleForm.executeDays" placeholder="请输入执行天数"></el-input>
                 </el-form-item>
             </el-form>
+            </template>
+        </el-dialog>
+
+        <!-- 异常上报弹窗 -->
+        <el-dialog v-model="exceptionVisible" title="异常事件上报" width="600px">
+            <el-form :model="exceptionForm" label-width="120px" ref="exceptionFormRef">
+                <el-form-item label="患者姓名" prop="patientName" :rules="[{ required: true, message: '请选择或输入患者姓名', trigger: 'blur' }]">
+                    <el-select
+                        v-model="exceptionForm.patientName"
+                        filterable
+                        remote
+                        reserve-keyword
+                        placeholder="请输入姓名检索患者"
+                        :remote-method="remoteSearchPatient"
+                        :loading="patientSearchLoading"
+                        style="width: 100%"
+                    >
+                        <el-option
+                            v-for="item in patientOptions"
+                            :key="item.patientId"
+                            :label="item.name"
+                            :value="item.name"
+                            @click="selectExceptionPatient(item)"
+                        >
+                            <span>{{ item.name }}</span>
+                            <span style="float: right; color: #8492a6; font-size: 13px">{{ item.phone }}</span>
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="患者编号">
+                    <el-input v-model="exceptionForm.patientId" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="异常类型" prop="type" :rules="[{ required: true, message: '请选择异常类型', trigger: 'change' }]">
+                    <el-radio-group v-model="exceptionForm.type">
+                        <el-radio label="AE">AE (不良事件)</el-radio>
+                        <el-radio label="SAE">SAE (严重不良事件)</el-radio>
+                        <el-radio label="药物安全信息">药物安全信息</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="事件发生日期" prop="occurDate">
+                    <el-date-picker v-model="exceptionForm.occurDate" type="date" placeholder="选择日期" style="width: 100%"></el-date-picker>
+                </el-form-item>
+                <el-form-item label="事件描述" prop="description" :rules="[{ required: true, message: '请输入事件描述', trigger: 'blur' }]">
+                    <el-input type="textarea" :rows="4" v-model="exceptionForm.description" placeholder="请详细描述异常事件情况..."></el-input>
+                </el-form-item>
+                <el-form-item label="备注">
+                    <el-input v-model="exceptionForm.remark"></el-input>
+                </el-form-item>
+            </el-form>
             <template #footer>
-                <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                    <el-button @click="addRuleVisible = false">取消</el-button>
-                    <el-button type="primary" @click="handleAddRuleSubmit">确定</el-button>
-                </div>
+                <el-button @click="exceptionVisible = false">取消</el-button>
+                <el-button type="primary" @click="handleExceptionSave">立即上报</el-button>
             </template>
         </el-dialog>
 
