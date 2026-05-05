@@ -8,7 +8,59 @@
     <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-    <style>[v-cloak] { display: none !important; }</style></head>
+    <style>
+        [v-cloak] { display: none !important; }
+        
+        /* 风险灯圆点样式 */
+        .risk-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        .risk-dot.red { 
+            background-color: #f5222d; 
+            box-shadow: 0 0 8px rgba(245, 34, 45, 0.6);
+            animation: breathe-red 2s infinite ease-in-out;
+        }
+        .risk-dot.yellow { background-color: #faad14; box-shadow: 0 0 6px rgba(250, 173, 20, 0.4); }
+        .risk-dot.green { background-color: #52c41a; }
+        
+        @keyframes breathe-red {
+            0% { opacity: 0.6; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.1); }
+            100% { opacity: 0.6; transform: scale(0.9); }
+        }
+
+        .med-status-tag {
+            border-radius: 4px;
+            padding: 0 10px;
+            font-weight: 500;
+            height: 24px;
+            line-height: 22px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        /* 详情页头部美化 */
+        .detail-header-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .detail-header-card::before {
+            content: '';
+            position: absolute;
+            right: -20px;
+            top: -20px;
+            width: 150px;
+            height: 150px;
+            background: rgba(64, 158, 255, 0.05);
+            border-radius: 50%;
+            z-index: 0;
+        }
+    </style></head>
 <body>
     <div id="app" v-cloak>
         <el-container class="layout-container">
@@ -322,6 +374,25 @@
                                                 <el-link v-if="activePath === 'patient-list' && col.key === 'name'" type="primary" @click="openPatientDetail(scope.row)" style="font-weight: bold;">
                                                     {{ scope.row[col.key] }}
                                                 </el-link>
+                                                
+                                                <!-- 风险等级列 -->
+                                                <template v-else-if="col.key === 'riskLevel'">
+                                                    <span :class="['risk-dot', scope.row.riskLevel]"></span>
+                                                    <span :style="{ color: scope.row.riskLevel === 'red' ? '#f5222d' : (scope.row.riskLevel === 'yellow' ? '#faad14' : '#52c41a'), fontWeight: scope.row.riskLevel === 'red' ? 'bold' : 'normal' }">
+                                                        {{ scope.row.riskLevel === 'red' ? '高风险' : (scope.row.riskLevel === 'yellow' ? '中风险' : '正常') }}
+                                                    </span>
+                                                </template>
+
+                                                <!-- 用药状态列 -->
+                                                <template v-else-if="col.key === 'medicationStatus'">
+                                                    <el-tag 
+                                                        :type="scope.row.medicationStatus === '用药中' ? 'success' : (['方案调整', '减量', '暂停'].includes(scope.row.medicationStatus) ? 'warning' : (['停药', '已出组'].includes(scope.row.medicationStatus) ? 'danger' : 'info'))" 
+                                                        effect="light" 
+                                                        size="small">
+                                                        {{ scope.row.medicationStatus }}
+                                                    </el-tag>
+                                                </template>
+
                                                 <el-link v-else-if="activePath === 'questionnaire' && col.key === 'code'" type="primary" @click="openQuestionnaireQuestions(scope.row)">
                                                     {{ scope.row[col.key] }}
                                                 </el-link>
@@ -347,10 +418,14 @@
                                                 <span v-else>{{ scope.row[col.key] }}</span>
                                             </template>
                                         </el-table-column>
-                                        <el-table-column v-if="activePath !== 'patient-list' && activePath !== 'satisfaction-report'" label="操作" width="150" fixed="right" align="center">
+                                        <el-table-column v-if="activePath !== 'satisfaction-report'" label="操作" width="150" fixed="right" align="center">
                                             <template #default="scope">
-                                                <!-- 异常管理：上报PV和解决 -->
-                                                <template v-if="activePath === 'exception-manage'">
+                                                 <!-- 患者列表：修改状态 -->
+                                                 <template v-if="activePath === 'patient-list'">
+                                                     <el-button link type="primary" size="small" @click="openRiskDialog(scope.row)">修改状态</el-button>
+                                                 </template>
+                                                 <!-- 异常管理：上报PV和解决 -->
+                                                 <template v-else-if="activePath === 'exception-manage'">
                                                     <el-button link type="primary" size="small" @click="handleExceptionAction('详情', scope.row)">查看详情</el-button>
                                                     <el-button v-if="scope.row.status === '待处理'" link type="primary" size="small" @click="handleExceptionAction('上报PV', scope.row)">上报PV</el-button>
                                                     <el-button v-if="scope.row.status !== '已解决'" link type="success" size="small" @click="handleExceptionAction('解决', scope.row)">解决</el-button>
@@ -632,30 +707,44 @@
                         <!-- 患者详情页面 -->
                         <div v-else-if="isPatientDetailPage" class="page-patient-detail">
                             <!-- 顶部概览卡片 -->
-                            <el-card shadow="never" class="detail-header-card" style="margin-bottom: 20px; border: none; background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <el-card shadow="never" class="detail-header-card" style="margin-bottom: 20px; border: none; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1;">
                                     <div style="display: flex; align-items: center; gap: 20px;">
-                                        <div style="font-size: 24px; font-weight: bold; color: #303133;">{{ patientDetailData.name }}</div>
-                                        <el-tag size="small" round effect="plain">{{ patientDetailData.gender || '女' }}</el-tag>
-                                        <el-tag size="small" round effect="plain" type="info">{{ patientDetailData.phone }}</el-tag>
+                                        <div style="font-size: 26px; font-weight: bold; color: #1d2129;">{{ patientDetailData.name }}</div>
+                                        <div style="display: flex; gap: 8px;">
+                                            <el-tag size="small" round effect="plain" type="info">{{ patientDetailData.gender || '女' }}</el-tag>
+                                            <el-tag size="small" round effect="plain" type="info">{{ patientDetailData.age || '—' }}岁</el-tag>
+                                        </div>
+                                        <div style="width: 1px; height: 24px; background: #e5e6eb; margin: 0 10px;"></div>
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <el-tag 
+                                                :type="patientDetailData.medicationStatus === '用药中' ? 'success' : (['方案调整', '减量', '暂停'].includes(patientDetailData.medicationStatus) ? 'warning' : (['停药', '已出组'].includes(patientDetailData.medicationStatus) ? 'danger' : 'info'))" 
+                                                effect="light" 
+                                                class="med-status-tag">
+                                                {{ patientDetailData.medicationStatus || '用药中' }}
+                                            </el-tag>
+                                            <div style="display: flex; align-items: center; background: #f2f3f5; padding: 4px 12px; border-radius: 20px;">
+                                                <span :class="['risk-dot', patientDetailData.riskLevel || 'green']"></span>
+                                                <span style="font-size: 13px; font-weight: 600;" :style="{ color: patientDetailData.riskLevel === 'red' ? '#f5222d' : (patientDetailData.riskLevel === 'yellow' ? '#faad14' : '#52c41a') }">
+                                                    {{ patientDetailData.riskLevel === 'red' ? '高风险' : (patientDetailData.riskLevel === 'yellow' ? '中风险' : '正常') }}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div style="display: flex; gap: 40px; margin-right: 50px;">
+                                    <div style="display: flex; gap: 40px; margin-right: 30px;">
                                         <div class="header-info-item">
-                                            <div class="info-label">患者编号</div>
-                                            <div class="info-value">{{ patientDetailData.patientId }}</div>
+                                            <div class="info-label" style="color: #86909c; font-size: 12px; margin-bottom: 4px;">患者编号</div>
+                                            <div class="info-value" style="font-weight: 600; color: #4e5969;">{{ patientDetailData.patientId }}</div>
                                         </div>
                                         <div class="header-info-item">
-                                            <div class="info-label">创建时间</div>
-                                            <div class="info-value">{{ patientDetailData.createTime?.split(' ')[0] }}</div>
+                                            <div class="info-label" style="color: #86909c; font-size: 12px; margin-bottom: 4px;">联系电话</div>
+                                            <div class="info-value" style="font-weight: 600; color: #4e5969;">{{ patientDetailData.phone }}</div>
                                         </div>
                                         <div class="header-info-item">
-                                            <div class="info-label">药房名称</div>
-                                            <div class="info-value">吉林大格测试药房</div>
+                                            <div class="info-label" style="color: #86909c; font-size: 12px; margin-bottom: 4px;">随访专员</div>
+                                            <div class="info-value" style="font-weight: 600; color: #409eff;">王专员</div>
                                         </div>
-                                    </div>
-                                    <div class="header-avatar">
-                                        <img src="https://img.icons8.com/clouds/100/000000/user.png" style="width: 80px; height: 80px; opacity: 0.6;">
                                     </div>
                                 </div>
                             </el-card>
@@ -1380,6 +1469,32 @@
             <template #footer>
                 <el-button @click="exceptionVisible = false">取消</el-button>
                 <el-button type="primary" @click="handleExceptionSave">立即上报</el-button>
+            </template>
+        </el-dialog>
+        
+        <!-- 风险状态修改弹窗 -->
+        <el-dialog v-model="riskVisible" title="修改患者状态" width="500px">
+            <el-form :model="riskForm" label-width="100px" ref="riskFormRef">
+                <el-form-item label="患者姓名">
+                    <el-input v-model="riskForm.name" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="原状态">
+                    <el-tag :type="riskForm.oldRiskType" size="small" effect="plain">{{ riskForm.oldRiskLabel }}</el-tag>
+                </el-form-item>
+                <el-form-item label="新状态" prop="newRisk" :rules="[{ required: true, message: '请选择新状态', trigger: 'change' }]">
+                    <el-select v-model="riskForm.newRisk" placeholder="请选择新状态" style="width: 100%">
+                        <el-option label="正常" value="green"></el-option>
+                        <el-option label="中风险" value="yellow"></el-option>
+                        <el-option label="高风险" value="red"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="修改原因" prop="reason" :rules="[{ required: true, message: '请输入修改原因', trigger: 'blur' }]">
+                    <el-input type="textarea" :rows="3" v-model="riskForm.reason" placeholder="请输入修改原因..."></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="riskVisible = false">取消</el-button>
+                <el-button type="primary" @click="handleRiskSave">确认修改</el-button>
             </template>
         </el-dialog>
 

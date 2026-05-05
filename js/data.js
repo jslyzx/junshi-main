@@ -223,11 +223,15 @@ const MOCK_DATA = {
             { label: '创建时间', key: 'date' }
         ],
         data: [
-            {"id":1,"code":"QT13","title":"QT停药提问话术","content":"停药提问关键：了解患者停药的真实原因（副作用、经济压力、依从性等）。建议话术：“郭先生，注意到您最近没有按计划购药，请问是因为身体有什么不适，还是其他原因导致停药了呢？这对后续治疗方案的调整非常关键，请如实告知。”","project":"君实随访","productName":"拓益","genericName":"特瑞普利单抗注射液","indication":"非小细胞肺癌","creator":"超级管理员","date":"2026-03-24"},
-            {"id":2,"code":"CD13","title":"CD停药提问话术","content":"停药提问关键：区分主动停药与医嘱停药。建议话术：“由于免疫治疗的疗程较长，中间停药可能会影响疗效。请问您是医生让您暂时停药观察，还是您自己感觉症状好转就停了？”","project":"君实随访","productName":"拓益","genericName":"特瑞普利单抗注射液","indication":"小细胞肺癌","creator":"超级管理员","date":"2026-03-24"},
-            {"id":3,"code":"UC13","title":"UC停药提问话术","content":"停药提问关键：询问是否存在未识别的不良反应。建议话术：“除了瘙痒，您最近有没有觉得特别累、或者恶心呕吐的情况？有些副作用比较隐蔽，可能是导致您不想继续用药的原因。”","project":"君实随访","productName":"拓益","genericName":"特瑞普利单抗注射液","indication":"肾癌","creator":"超级管理员","date":"2026-03-24"},
-            {"id":4,"code":"AS13","title":"副作用安抚话术","content":"建议话术：“郭先生，您反馈的皮肤瘙痒是免疫治疗中比较常见的轻度副作用，不要太担心。建议您局部涂抹一些温和的润肤霜，同时避免抓挠。如果瘙痒范围扩大或出现皮疹，请务必第一时间拍照发给我，并联系主治医生。”","project":"君实随访","productName":"拓益","genericName":"特瑞普利单抗注射液","indication":"尿路上皮癌","creator":"超级管理员","date":"2026-03-24"},
-            {"id":5,"code":"PsA13","title":"复购引导话术","content":"建议话术：“您的下次用药时间快到了，为了保证体内药物浓度的稳定，建议您提前安排好购药计划。如果您在购药流程上有什么疑问，或者需要查询附近的药房，可以随时咨询我。”","project":"君实随访","productName":"拓益","genericName":"特瑞普利单抗注射液","indication":"食管癌","creator":"超级管理员","date":"2026-03-24"}
+            { id: 1, createTime: '2026-01-14 09:44:19', name: '吴*珍', patientId: 'ff881b85-bf8b-4ce6...', phone: '135****7735', gender: '女', birthDate: '', indication: '非小细胞肺癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '用药中', riskLevel: 'green' },
+            { id: 2, createTime: '2026-01-14 09:44:19', name: '张*', patientId: 'ff4af52c-5894-45ed...', phone: '150****9660', gender: '男', birthDate: '', indication: '食管癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '未确认', riskLevel: 'yellow' },
+            { id: 3, createTime: '2026-01-14 09:44:19', name: '齐*', patientId: 'ff47c658-c93a-49fa...', phone: '135****5130', gender: '女', birthDate: '', indication: '鼻咽癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '方案调整', riskLevel: 'yellow' },
+            { id: 4, createTime: '2026-01-14 09:44:19', name: '罗*凤', patientId: 'ff2425c1-69a9-404...', phone: '130****1167', gender: '女', birthDate: '', indication: '尿路上皮癌', hospital: '吉林省人民医院', province: '', city: '', district: '', address: '', medicationStatus: '停药', riskLevel: 'red' },
+            { id: 5, createTime: '2026-01-14 09:44:19', name: '阎*', patientId: 'ff13bf89-1b0e-4c57...', phone: '139****2098', gender: '男', birthDate: '', indication: '三阴乳腺癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '暂停', riskLevel: 'yellow' },
+            { id: 6, createTime: '2026-01-14 09:44:18', name: '付*娣', patientId: 'fe7b7ef9-25d5-4b4...', phone: '135****5666', gender: '女', birthDate: '2007-08-23', indication: '黑色素瘤', hospital: '吉林大学中日联谊医院', province: '', city: '', district: '', address: '', medicationStatus: '用药中', riskLevel: 'green' },
+            { id: 7, createTime: '2026-01-14 09:44:18', name: '刘*海', patientId: 'fe677953-6f53-47d...', phone: '135****3102', gender: '男', birthDate: '', indication: '黑色素瘤', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '减量', riskLevel: 'yellow' },
+            { id: 8, createTime: '2026-01-14 09:44:18', name: '冯*雪', patientId: 'fe4cbec8-420a-4efd...', phone: '183****2567', gender: '女', birthDate: '', indication: '结直肠癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '用药中', riskLevel: 'green' },
+            { id: 9, createTime: '2026-01-14 09:44:18', name: '逯*', patientId: 'fe1d81a0-0590-465...', phone: '180****6619', gender: '男', birthDate: '', indication: '肝癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '停药', riskLevel: 'green' }
         ]
     },
     'sales-stats': {
@@ -256,6 +260,8 @@ const MOCK_DATA = {
         columns: [
             { label: '创建时间', key: 'createTime' },
             { label: '患者姓名', key: 'name' },
+            { label: '风险等级', key: 'riskLevel' },
+            { label: '用药状态', key: 'medicationStatus' },
             { label: '患者编号', key: 'patientId' },
             { label: '联系电话', key: 'phone' },
             { label: '性别', key: 'gender' },
@@ -264,15 +270,14 @@ const MOCK_DATA = {
             { label: '首诊医院', key: 'hospital' }
         ],
         data: [
-            { id: 1, createTime: '2026-01-14 09:44:19', name: '吴*珍', patientId: 'ff881b85-bf8b-4ce6...', phone: '135****7735', gender: '女', birthDate: '', indication: '非小细胞肺癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '' },
-            { id: 2, createTime: '2026-01-14 09:44:19', name: '张*', patientId: 'ff4af52c-5894-45ed...', phone: '150****9660', gender: '男', birthDate: '', indication: '食管癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '' },
-            { id: 3, createTime: '2026-01-14 09:44:19', name: '齐*', patientId: 'ff47c658-c93a-49fa...', phone: '135****5130', gender: '女', birthDate: '', indication: '鼻咽癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '' },
-            { id: 4, createTime: '2026-01-14 09:44:19', name: '罗*凤', patientId: 'ff2425c1-69a9-404...', phone: '130****1167', gender: '女', birthDate: '', indication: '尿路上皮癌', hospital: '吉林省人民医院', province: '', city: '', district: '', address: '' },
-            { id: 5, createTime: '2026-01-14 09:44:19', name: '阎*', patientId: 'ff13bf89-1b0e-4c57...', phone: '139****2098', gender: '男', birthDate: '', indication: '三阴乳腺癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '' },
-            { id: 6, createTime: '2026-01-14 09:44:18', name: '付*娣', patientId: 'fe7b7ef9-25d5-4b4...', phone: '135****5666', gender: '女', birthDate: '2007-08-23', indication: '黑色素瘤', hospital: '吉林大学中日联谊医院', province: '', city: '', district: '', address: '' },
-            { id: 7, createTime: '2026-01-14 09:44:18', name: '刘*海', patientId: 'fe677953-6f53-47d...', phone: '135****3102', gender: '男', birthDate: '', indication: '黑色素瘤', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '' },
-            { id: 8, createTime: '2026-01-14 09:44:18', name: '冯*雪', patientId: 'fe4cbec8-420a-4efd...', phone: '183****2567', gender: '女', birthDate: '', indication: '结直肠癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '' },
-            { id: 9, createTime: '2026-01-14 09:44:18', name: '逯*', patientId: 'fe1d81a0-0590-465...', phone: '180****6619', gender: '男', birthDate: '', indication: '肝癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '' }
+            { id: 1, createTime: '2026-01-14 09:44:19', name: '吴*珍', patientId: 'ff881b85-bf8b-4ce6...', phone: '135****7735', gender: '女', birthDate: '', indication: '非小细胞肺癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '用药中', riskLevel: 'green' },
+            { id: 2, createTime: '2026-01-14 09:44:19', name: '张*', patientId: 'ff4af52c-5894-45ed...', phone: '150****9660', gender: '男', birthDate: '', indication: '食管癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '未确认', riskLevel: 'green' },
+            { id: 3, createTime: '2026-01-14 09:44:19', name: '齐*', patientId: 'ff47c658-c93a-49fa...', phone: '135****5130', gender: '女', birthDate: '', indication: '鼻咽癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '方案调整', riskLevel: 'yellow' },
+            { id: 4, createTime: '2026-01-14 09:44:19', name: '罗*凤', patientId: 'ff2425c1-69a9-404...', phone: '130****1167', gender: '女', birthDate: '', indication: '尿路上皮癌', hospital: '吉林省人民医院', province: '', city: '', district: '', address: '', medicationStatus: '停药', riskLevel: 'red' },
+            { id: 5, createTime: '2026-01-14 09:44:19', name: '阎*', patientId: 'ff13bf89-1b0e-4c57...', phone: '139****2098', gender: '男', birthDate: '', indication: '三阴乳腺癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '暂停', riskLevel: 'yellow' },
+            { id: 6, createTime: '2026-01-14 09:44:18', name: '付*娣', patientId: 'fe7b7ef9-25d5-4b4...', phone: '135****5666', gender: '女', birthDate: '2007-08-23', indication: '黑色素瘤', hospital: '吉林大学中日联谊医院', province: '', city: '', district: '', address: '', medicationStatus: '用药中', riskLevel: 'green' },
+            { id: 7, createTime: '2026-01-14 09:44:18', name: '刘*海', patientId: 'fe677953-6f53-47d...', phone: '135****3102', gender: '男', birthDate: '', indication: '黑色素瘤', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '减量', riskLevel: 'yellow' },
+            { id: 8, createTime: '2026-01-14 09:44:18', name: '冯*雪', patientId: 'fe4cbec8-420a-4efd...', phone: '183****2567', gender: '女', birthDate: '', indication: '结直肠癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '用药中', riskLevel: 'green' }
         ]
     },
     'followup-task': {
@@ -324,16 +329,20 @@ const MOCK_DATA = {
             { label: '状态', key: 'status' }
         ],
         data: [
-            { id: 1, patientName: '郭*轩', lastMsg: '我想咨询下关于特瑞普利单抗的副作用', time: '2026-04-27 10:30', status: '未回复', history: [
-                { role: 'patient', content: '您好，我最近打完药感觉皮肤有点痒。', time: '2026-04-27 09:00' },
-                { role: 'helper', content: '郭先生您好，皮疹是免疫治疗常见的反应，请问痒的面积大吗？有没有红肿？', time: '2026-04-27 09:05' },
-                { role: 'patient', content: '面积不算大，就是局部几个点，我想咨询下关于特瑞普利单抗的副作用。', time: '2026-04-27 10:30' }
-            ]},
-            { id: 2, patientName: '吴*珍', lastMsg: '好的，谢谢医生', time: '2026-04-26 15:20', status: '已回复', history: [
-                { role: 'patient', content: '请问下次随访是什么时候？', time: '2026-04-26 15:00' },
-                { role: 'helper', content: '吴女士，您的下次计划随访时间是5月10日，届时我们会电话联系您。', time: '2026-04-26 15:15' },
-                { role: 'patient', content: '好的，谢谢医生', time: '2026-04-26 15:20' }
-            ]}
+            {
+                id: 1, patientName: '郭*轩', lastMsg: '我想咨询下关于特瑞普利单抗的副作用', time: '2026-04-27 10:30', status: '未回复', history: [
+                    { role: 'patient', content: '您好，我最近打完药感觉皮肤有点痒。', time: '2026-04-27 09:00' },
+                    { role: 'helper', content: '郭先生您好，皮疹是免疫治疗常见的反应，请问痒的面积大吗？有没有红肿？', time: '2026-04-27 09:05' },
+                    { role: 'patient', content: '面积不算大，就是局部几个点，我想咨询下关于特瑞普利单抗的副作用。', time: '2026-04-27 10:30' }
+                ]
+            },
+            {
+                id: 2, patientName: '吴*珍', lastMsg: '好的，谢谢医生', time: '2026-04-26 15:20', status: '已回复', history: [
+                    { role: 'patient', content: '请问下次随访是什么时候？', time: '2026-04-26 15:00' },
+                    { role: 'helper', content: '吴女士，您的下次计划随访时间是5月10日，届时我们会电话联系您。', time: '2026-04-26 15:15' },
+                    { role: 'patient', content: '好的，谢谢医生', time: '2026-04-26 15:20' }
+                ]
+            }
         ]
     },
     'complaint-manage': {

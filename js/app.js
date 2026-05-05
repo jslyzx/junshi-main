@@ -45,6 +45,50 @@ const app = createApp({
 
         // 患者详情页面数据
         const patientDetailData = ref({});
+        
+        // 风险状态修改状态
+        const riskVisible = ref(false);
+        const riskFormRef = ref(null);
+        const riskForm = reactive({
+            name: '',
+            oldRisk: '',
+            oldRiskLabel: '',
+            oldRiskType: '',
+            newRisk: '',
+            reason: '',
+            targetRow: null
+        });
+
+        const riskMap = {
+            'green': { label: '正常', type: 'success' },
+            'yellow': { label: '中风险', type: 'warning' },
+            'red': { label: '高风险', type: 'danger' }
+        };
+
+        const openRiskDialog = (row) => {
+            const riskInfo = riskMap[row.riskLevel] || { label: '未知', type: 'info' };
+            Object.assign(riskForm, {
+                name: row.name,
+                oldRisk: row.riskLevel,
+                oldRiskLabel: riskInfo.label,
+                oldRiskType: riskInfo.type,
+                newRisk: '',
+                reason: '',
+                targetRow: row
+            });
+            riskVisible.value = true;
+            if (riskFormRef.value) riskFormRef.value.resetFields();
+        };
+
+        const handleRiskSave = () => {
+            riskFormRef.value.validate((valid) => {
+                if (valid) {
+                    riskForm.targetRow.riskLevel = riskForm.newRisk;
+                    ElementPlus.ElMessage.success(`已成功将患者【${riskForm.name}】的状态修改为 ${riskMap[riskForm.newRisk].label}`);
+                    riskVisible.value = false;
+                }
+            });
+        };
         const openPatientDetail = (row) => {
             const searchName = row.name || row.patientName;
             const searchId = row.patientId;
@@ -915,7 +959,8 @@ const app = createApp({
             handleExecuteConfirm,
             dictGroups, activeDictGroup, dictItems,
             messageSearchKeyword, activeMessage, replyContent, chatScrollRef, filteredMessages, selectMessage, handleReplyMessage, isChatMode,
-            scriptDrawerVisible, scriptSearchKeyword, scriptList, useScript
+            scriptDrawerVisible, scriptSearchKeyword, scriptList, useScript,
+            riskVisible, riskForm, riskFormRef, openRiskDialog, handleRiskSave
         };
     }
 });
