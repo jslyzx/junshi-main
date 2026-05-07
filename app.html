@@ -456,6 +456,10 @@
                                                 <template v-else-if="activePath === 'message-manage'">
                                                     <el-button link type="primary" size="small" @click="selectMessage(scope.row)">回复</el-button>
                                                 </template>
+                                                <!-- 投诉管理：仅显示回复 -->
+                                                <template v-else-if="activePath === 'complaint-manage'">
+                                                    <el-button link type="primary" size="small" @click="handleAction('回复', scope.row)">回复</el-button>
+                                                </template>
                                                 <!-- 其他页面通用操作 -->
                                                 <div v-else>
                                                     <el-dropdown trigger="hover">
@@ -1495,6 +1499,27 @@
             <template #footer>
                 <el-button @click="riskVisible = false">取消</el-button>
                 <el-button type="primary" @click="handleRiskSave">确认修改</el-button>
+            </template>
+        </el-dialog>
+        
+        <!-- 投诉回复弹窗 -->
+        <el-dialog v-model="complaintVisible" title="投诉回复" width="500px">
+            <el-form :model="complaintForm" label-width="100px" ref="complaintFormRef">
+                <el-form-item label="投诉患者">
+                    <el-input v-model="complaintForm.patient" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="投诉内容">
+                    <div style="padding: 8px 12px; background: #f5f7fa; border-radius: 4px; color: #606266; font-size: 13px; line-height: 1.6;">
+                        {{ complaintForm.content }}
+                    </div>
+                </el-form-item>
+                <el-form-item label="回复内容" prop="reply" :rules="[{ required: true, message: '请输入回复内容', trigger: 'blur' }]">
+                    <el-input type="textarea" :rows="4" v-model="complaintForm.reply" placeholder="请输入针对该投诉的回复或处理结果..."></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="complaintVisible = false">取消</el-button>
+                <el-button type="primary" @click="handleComplaintReply">确认回复</el-button>
             </template>
         </el-dialog>
 

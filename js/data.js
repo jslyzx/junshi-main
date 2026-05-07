@@ -223,15 +223,8 @@ const MOCK_DATA = {
             { label: '创建时间', key: 'date' }
         ],
         data: [
-            { id: 1, createTime: '2026-01-14 09:44:19', name: '吴*珍', patientId: 'ff881b85-bf8b-4ce6...', phone: '135****7735', gender: '女', birthDate: '', indication: '非小细胞肺癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '用药中', riskLevel: 'green' },
-            { id: 2, createTime: '2026-01-14 09:44:19', name: '张*', patientId: 'ff4af52c-5894-45ed...', phone: '150****9660', gender: '男', birthDate: '', indication: '食管癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '未确认', riskLevel: 'yellow' },
-            { id: 3, createTime: '2026-01-14 09:44:19', name: '齐*', patientId: 'ff47c658-c93a-49fa...', phone: '135****5130', gender: '女', birthDate: '', indication: '鼻咽癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '方案调整', riskLevel: 'yellow' },
-            { id: 4, createTime: '2026-01-14 09:44:19', name: '罗*凤', patientId: 'ff2425c1-69a9-404...', phone: '130****1167', gender: '女', birthDate: '', indication: '尿路上皮癌', hospital: '吉林省人民医院', province: '', city: '', district: '', address: '', medicationStatus: '停药', riskLevel: 'red' },
-            { id: 5, createTime: '2026-01-14 09:44:19', name: '阎*', patientId: 'ff13bf89-1b0e-4c57...', phone: '139****2098', gender: '男', birthDate: '', indication: '三阴乳腺癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '暂停', riskLevel: 'yellow' },
-            { id: 6, createTime: '2026-01-14 09:44:18', name: '付*娣', patientId: 'fe7b7ef9-25d5-4b4...', phone: '135****5666', gender: '女', birthDate: '2007-08-23', indication: '黑色素瘤', hospital: '吉林大学中日联谊医院', province: '', city: '', district: '', address: '', medicationStatus: '用药中', riskLevel: 'green' },
-            { id: 7, createTime: '2026-01-14 09:44:18', name: '刘*海', patientId: 'fe677953-6f53-47d...', phone: '135****3102', gender: '男', birthDate: '', indication: '黑色素瘤', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '减量', riskLevel: 'yellow' },
-            { id: 8, createTime: '2026-01-14 09:44:18', name: '冯*雪', patientId: 'fe4cbec8-420a-4efd...', phone: '183****2567', gender: '女', birthDate: '', indication: '结直肠癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '用药中', riskLevel: 'green' },
-            { id: 9, createTime: '2026-01-14 09:44:18', name: '逯*', patientId: 'fe1d81a0-0590-465...', phone: '180****6619', gender: '男', birthDate: '', indication: '肝癌', hospital: '吉林大学第二医院', province: '', city: '', district: '', address: '', medicationStatus: '停药', riskLevel: 'green' }
+            { id: 1, code: 'H001', title: '入组欢迎辞', content: '您好，欢迎加入君实随访项目。建议话术：“感谢您选择拓益，我们将全程为您提供随访服务。”', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '通用', creator: '超级管理员', date: '2026-01-14' },
+            { id: 2, code: 'H002', title: '副作用咨询', content: '关于副作用的解释。建议话术：“免疫治疗可能会有一些副作用，如皮疹或疲劳，请及时反馈。”', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '通用', creator: '超级管理员', date: '2026-01-14' }
         ]
     },
     'sales-stats': {

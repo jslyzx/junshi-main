@@ -59,6 +59,16 @@ const app = createApp({
             targetRow: null
         });
 
+        // 投诉回复状态
+        const complaintVisible = ref(false);
+        const complaintFormRef = ref(null);
+        const complaintForm = reactive({
+            patient: '',
+            content: '',
+            reply: '',
+            targetRow: null
+        });
+
         const riskMap = {
             'green': { label: '正常', type: 'success' },
             'yellow': { label: '中风险', type: 'warning' },
@@ -577,6 +587,15 @@ const app = createApp({
                 });
             } else if (type === '执行') {
                 handleExecuteTask(row);
+            } else if (type === '回复' && activePath.value === 'complaint-manage') {
+                Object.assign(complaintForm, {
+                    patient: row.patient,
+                    content: row.content,
+                    reply: '',
+                    targetRow: row
+                });
+                complaintVisible.value = true;
+                if (complaintFormRef.value) complaintFormRef.value.resetFields();
             } else {
                 ElementPlus.ElMessage.info(`正在进行【${type}】操作: ${row.name || row.id}`);
             }
@@ -918,6 +937,17 @@ const app = createApp({
             }, 100);
         };
 
+        const handleComplaintReply = () => {
+            complaintFormRef.value.validate((valid) => {
+                if (valid) {
+                    complaintForm.targetRow.status = '已处理';
+                    ElementPlus.ElMessage.success(`已回复患者【${complaintForm.patient}】的投诉`);
+                    complaintVisible.value = false;
+                    renderCurrentPage();
+                }
+            });
+        };
+
         onMounted(() => {
             const hash = window.location.hash.slice(1) || 'home';
             handleMenuSelect(hash);
@@ -960,7 +990,8 @@ const app = createApp({
             dictGroups, activeDictGroup, dictItems,
             messageSearchKeyword, activeMessage, replyContent, chatScrollRef, filteredMessages, selectMessage, handleReplyMessage, isChatMode,
             scriptDrawerVisible, scriptSearchKeyword, scriptList, useScript,
-            riskVisible, riskForm, riskFormRef, openRiskDialog, handleRiskSave
+            riskVisible, riskForm, riskFormRef, openRiskDialog, handleRiskSave,
+            complaintVisible, complaintForm, complaintFormRef, handleComplaintReply
         };
     }
 });
