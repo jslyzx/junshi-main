@@ -455,7 +455,7 @@ const app = createApp({
                 { id: 103, order: 3, label: '不良反应', type: '多选', question: '您近期是否有遇到任何不适或不良反应？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-05 09:49:00', updater: '超级管理员', updateTime: '2025-12-05 09:49:00' }
             ],
             'FG': [ // 复购随访问卷
-                { id: 201, order: 1, label: '复购数量', type: '填空', question: '您好，请问您本次计划复购的药品数量或疗程是多少？', isRequired: '是', isTriggerByAnswer: '否', creator: '超级管理员', createTime: '2025-12-06 10:10:00', updater: '超级管理员', updateTime: '2025-12-06 10:10:00' },
+                { id: 201, order: 1, label: '用药情况', type: '单选', question: '先和您确认一下，您（或您父亲/您母亲/您太太/您先生……）现在还是按照医嘱在正常用药对吧？医生有没有调整用药方案或者剂量？', isRequired: '是', isTriggerByAnswer: '否', creator: '超级管理员', createTime: '2025-12-06 10:10:00', updater: '超级管理员', updateTime: '2025-12-06 10:10:00' },
                 { id: 202, order: 2, label: '疗效评估', type: '单选', question: '在上一周期的用药过程中，您觉得整体疗效如何？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-06 10:11:00', updater: '超级管理员', updateTime: '2025-12-06 10:11:00' },
                 { id: 203, order: 3, label: '处方需求', type: '单选', question: '您本次购药是否需要医生为您重新开具或调整处方？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-06 10:12:00', updater: '超级管理员', updateTime: '2025-12-06 10:12:00' }
             ],
@@ -468,8 +468,8 @@ const app = createApp({
                 { id: 306, order: 6, label: '是否手术', type: '单选', question: '您（或您父亲/您母亲/您太太/您先生……）目前是用的什么治疗方案，有没有手术过？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' },
                 { id: 307, order: 7, label: '是否复发/ 转移', type: '单选', question: '您（或您父亲/您母亲/您太太/您先生……）目前是否复发/转移？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025 - 12-07 14:05:00', updater: '超级管理员', updateTime: '2025 - 12-07 14:05:00' },
                 { id: 308, order: 8, label: '复诊周期', type: '单选', question: '那医嘱是让您（或您父亲/您母亲/您太太/您先生……）每2周一次去复诊用药，还是每3周一次？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' },
-                { id: 309, order: 9, label: '症状变化', type: '单选', question: '您（或您父亲/您母亲/您太太/您先生……）这几天用完药，自己感觉症状有没有变化？是不是比之前还好一些？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' }, { id: 303, order: 3, label: '您知道您（或您父亲/您母亲/您太太/您先生……）现在是几期了吗？', type: '单选', question: '您知道您（或您父亲/您母亲/您太太/您先生……）现在是几期了吗？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' },
-                { id: 310, order: 10, label: '不良反应', type: '多选', question: '您（或您父亲/您母亲/您太太/您先生……）这几天吃饭睡觉都还正常吧？有没有出现不舒服的症状？（多选，必填）', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' }, { id: 303, order: 3, label: '您知道您（或您父亲/您母亲/您太太/您先生……）现在是几期了吗？', type: '单选', question: '您知道您（或您父亲/您母亲/您太太/您先生……）现在是几期了吗？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' }
+                { id: 309, order: 9, label: '症状变化', type: '单选', question: '您（或您父亲/您母亲/您太太/您先生……）这几天用完药，自己感觉症状有没有变化？是不是比之前还好一些？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' },
+                { id: 310, order: 10, label: '不良反应', type: '多选', question: '您（或您父亲/您母亲/您太太/您先生……）这几天吃饭睡觉都还正常吧？有没有出现不舒服的症状？（多选，必填）', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' }
             ]
         };
 
