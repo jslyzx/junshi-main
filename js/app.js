@@ -45,7 +45,7 @@ const app = createApp({
 
         // 患者详情页面数据
         const patientDetailData = ref({});
-        
+
         // 风险状态修改状态
         const riskVisible = ref(false);
         const riskFormRef = ref(null);
@@ -103,17 +103,17 @@ const app = createApp({
             const searchName = row.name || row.patientName;
             const searchId = row.patientId;
             const patientList = MOCK_DATA['patient-list']?.data || [];
-            
+
             // 严谨查找：优先匹配 patientId (UUID)，如果没有则匹配姓名
-            const fullInfo = patientList.find(p => p.patientId === searchId) || 
-                             patientList.find(p => p.name === searchName) || 
-                             row;
-            
-            patientDetailData.value = { 
+            const fullInfo = patientList.find(p => p.patientId === searchId) ||
+                patientList.find(p => p.name === searchName) ||
+                row;
+
+            patientDetailData.value = {
                 ...fullInfo,
                 name: fullInfo.name || searchName,
                 // 确保随访任务中的特定字段也能带过去（如果是回退到 row）
-                patientId: fullInfo.patientId || searchId 
+                patientId: fullInfo.patientId || searchId
             };
             const tabId = 'patient-detail-' + (fullInfo.patientId || Date.now());
             navigate(tabId, patientDetailData.value.name + ' 详情信息');
@@ -229,7 +229,7 @@ const app = createApp({
             { name: '家庭条件', code: 'condition' }
         ]);
         const activeDictGroup = ref('适应性子项');
-        
+
         const ALL_DICT_ITEMS = [
             { name: '适应性子项', code: 'adaptability', item: '不该进行单药治疗的实用性...', status: '启用' },
             { name: '适应性子项', code: 'adaptability', item: '更适合进行非药物治疗的疾...', status: '启用' },
@@ -447,7 +447,7 @@ const app = createApp({
         // 问卷模块问题弹窗状态
         const questionnaireQuestionVisible = ref(false);
         const questionData = ref([]);
-        
+
         const QUESTION_MOCK_DB = {
             'CQ': [ // 超期随访问卷
                 { id: 101, order: 1, label: '超期原因', type: '单选', question: '您好，请问您近期未按时进行复诊/随访的原因是什么？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-05 09:47:40', updater: '超级管理员', updateTime: '2025-12-05 09:47:40' },
@@ -460,9 +460,16 @@ const app = createApp({
                 { id: 203, order: 3, label: '处方需求', type: '单选', question: '您本次购药是否需要医生为您重新开具或调整处方？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-06 10:12:00', updater: '超级管理员', updateTime: '2025-12-06 10:12:00' }
             ],
             'SC': [ // 首次建档随访问卷
-                { id: 301, order: 1, label: '信息确认', type: '单选', question: '请确认您的基本个人信息与诊断信息是否准确无误？', isRequired: '是', isTriggerByAnswer: '否', creator: '超级管理员', createTime: '2025-12-07 14:00:00', updater: '超级管理员', updateTime: '2025-12-07 14:00:00' },
-                { id: 302, order: 2, label: '既往病史', type: '多选', question: '您过往是否有其他重大疾病史或药物过敏史（请列举）？', isRequired: '是', isTriggerByAnswer: '否', creator: '超级管理员', createTime: '2025-12-07 14:02:00', updater: '超级管理员', updateTime: '2025-12-07 14:02:00' },
-                { id: 303, order: 3, label: '用药指导认知', type: '单选', question: '您对接下来的用药流程、储存条件和注意事项是否已经完全了解？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' }
+                { id: 301, order: 1, label: '您是患者本人吗？后续随访是继续联系您吗？', type: '单选', question: '您是患者本人吗？后续随访是继续联系您吗？', isRequired: '是', isTriggerByAnswer: '否', creator: '超级管理员', createTime: '2025-12-07 14:00:00', updater: '超级管理员', updateTime: '2025-12-07 14:00:00' },
+                { id: 302, order: 2, label: '登记信息', type: '单选', question: '我先帮您（或您父亲/您母亲/您太太/您先生……）登记一下基础信息，医生给您（或您父亲/您母亲/您太太/您先生……）处方上写的适应症是什么？（单选，必填，如患者表述不清可提醒查看病历）', isRequired: '是', isTriggerByAnswer: '否', creator: '超级管理员', createTime: '2025-12-07 14:02:00', updater: '超级管理员', updateTime: '2025-12-07 14:02:00' },
+                { id: 303, order: 3, label: '您知道您（或您父亲/您母亲/您太太/您先生……）现在是几期了吗？', type: '单选', question: '您知道您（或您父亲/您母亲/您太太/您先生……）现在是几期了吗？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' },
+                { id: 304, order: 4, label: '治疗方案', type: '单选', question: '您（或您父亲/您母亲/您太太/您先生……）目前是用的什么治疗方案？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' },
+                { id: 305, order: 5, label: '联合用药', type: '单选', question: '您（或您父亲/您母亲/您太太/您先生……）目前是否联合用药？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' },
+                { id: 306, order: 6, label: '是否手术', type: '单选', question: '您（或您父亲/您母亲/您太太/您先生……）目前是用的什么治疗方案，有没有手术过？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' },
+                { id: 307, order: 7, label: '是否复发/ 转移', type: '单选', question: '您（或您父亲/您母亲/您太太/您先生……）目前是否复发/转移？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025 - 12-07 14:05:00', updater: '超级管理员', updateTime: '2025 - 12-07 14:05:00' },
+                { id: 308, order: 8, label: '复诊周期', type: '单选', question: '那医嘱是让您（或您父亲/您母亲/您太太/您先生……）每2周一次去复诊用药，还是每3周一次？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' },
+                { id: 309, order: 9, label: '症状变化', type: '单选', question: '您（或您父亲/您母亲/您太太/您先生……）这几天用完药，自己感觉症状有没有变化？是不是比之前还好一些？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' }, { id: 303, order: 3, label: '您知道您（或您父亲/您母亲/您太太/您先生……）现在是几期了吗？', type: '单选', question: '您知道您（或您父亲/您母亲/您太太/您先生……）现在是几期了吗？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' },
+                { id: 310, order: 10, label: '不良反应', type: '多选', question: '您（或您父亲/您母亲/您太太/您先生……）这几天吃饭睡觉都还正常吧？有没有出现不舒服的症状？（多选，必填）', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' }, { id: 303, order: 3, label: '您知道您（或您父亲/您母亲/您太太/您先生……）现在是几期了吗？', type: '单选', question: '您知道您（或您父亲/您母亲/您太太/您先生……）现在是几期了吗？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-07 14:05:00', updater: '超级管理员', updateTime: '2025-12-07 14:05:00' }
             ]
         };
 
@@ -611,7 +618,7 @@ const app = createApp({
         const articleTitle = ref('新增');
         const articleForm = reactive({ id: null, title: '', category: '', author: '', content: '', status: '草稿' });
         const currentCategories = computed(() => ARTICLE_CATEGORIES[activePath.value] || []);
-        
+
         const articlePreviewVisible = ref(false);
         const previewArticleData = ref({});
 
@@ -655,7 +662,7 @@ const app = createApp({
                     consentVersionData.value = [...data];
                     ElementPlus.ElMessage.success('发布成功');
                 }
-            }).catch(() => {});
+            }).catch(() => { });
         };
 
         const openArticleModal = () => {
@@ -753,7 +760,7 @@ const app = createApp({
         const useScript = (script) => {
             // 简单处理下 HTML 标签（如果有的话）
             let text = script.content.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
-            
+
             // 提取“建议话术”中的实际回复内容
             const match = text.match(/建议话术：[“"'](.*?)['"”]/);
             if (match && match[1]) {
@@ -786,13 +793,13 @@ const app = createApp({
 
         const handleReplyMessage = () => {
             if (!replyContent.value.trim() || !activeMessage.value) return;
-            
+
             const newReply = {
                 role: 'helper',
                 content: replyContent.value,
                 time: new Date().toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-')
             };
-            
+
             activeMessage.value.history.push(newReply);
             activeMessage.value.lastMsg = replyContent.value;
             activeMessage.value.status = '已回复';
@@ -921,7 +928,7 @@ const app = createApp({
                 if (isCommonPage.value) {
                     tableData.value = MOCK_DATA[activePath.value].data;
                 }
-                
+
                 // 版本管理页面
                 if (activePath.value === 'consent-version') {
                     consentVersionData.value = MOCK_DATA['consent-version'].data;
@@ -932,7 +939,7 @@ const app = createApp({
                 if (container && activePath.value.startsWith('article-')) {
                     renderArticlePageVue(container, activePath.value);
                 }
-                
+
                 loading.value = false;
             }, 100);
         };
@@ -978,7 +985,7 @@ const app = createApp({
 
             exceptionVisible, exceptionTypeFilter, exceptionForm, exceptionFormRef,
             patientOptions, patientSearchLoading,
-            openExceptionModal, remoteSearchPatient, selectExceptionPatient, 
+            openExceptionModal, remoteSearchPatient, selectExceptionPatient,
             handleExceptionSave, handleExceptionAction,
 
             isCommonPage, isArticlePage, isBaseDataPage, isExecutePage, isPatientDetailPage,
@@ -1046,7 +1053,7 @@ function renderHomePageVue(container) {
                 随访分析（本月）
             </div>
             <div class="el-row" style="margin: -10px; display: flex; flex-wrap: wrap;">
-                ${followStats.map(item => renderCard({...item, span: 6})).join('')}
+                ${followStats.map(item => renderCard({ ...item, span: 6 })).join('')}
             </div>
         </div>
     `;
@@ -1121,7 +1128,7 @@ function renderCommonTableVue(container, id) {
 function renderArticlePageVue(container, id) {
     const articles = ARTICLE_DATA[id] || [];
     const categories = ['全部', ...(ARTICLE_CATEGORIES[id] || [])];
-    
+
     const renderTabs = () => `
         <div class="el-tabs el-tabs--top" style="margin-bottom: 20px;">
             <div class="el-tabs__header is-top">
