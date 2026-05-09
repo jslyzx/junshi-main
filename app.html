@@ -644,12 +644,37 @@
                                         <div id="section-indication" style="margin-bottom:15px;"><div style="font-size:14px;margin-bottom:10px;"><span style="color:#f56c6c;">*</span> 项目适应症</div><el-input model-value="非小细胞肺癌" disabled style="width:300px;"></el-input></div>
                                         <div id="section-questionnaire" style="margin-bottom:20px;">
                                             <div style="font-size:15px;font-weight:600;margin-bottom:12px;padding-left:10px;border-left:3px solid #409eff;">君实随访问答</div>
-                                            <div style="background:#fafafa;border-radius:4px;padding:14px;margin-bottom:16px;"><div style="font-size:14px;font-weight:600;margin-bottom:8px;">AD疾病关键点：</div><div style="font-size:13px;color:#606266;line-height:1.8;">特应性皮炎不是普通的皮肤病，是慢性、复发性、会反复的免疫系统性疾病。考虑到需要长期用药控制，就像高血压、糖尿等一样，我们先定一个小目标——4个月。</div></div>
-                                            <div style="font-size:14px;margin-bottom:10px;"><span style="color:#f56c6c;">*</span> 004、您有关于用药的问题吗？（多选）</div>
-                                            <div style="font-size:12px;color:#909399;margin-bottom:10px;">用药问题提问关键：关于治疗周期、副作用、行效等方向的疑问</div>
-                                            <div style="display:flex;flex-direction:column;gap:8px;"><el-checkbox v-for="opt in ['药物治疗周期问题','复诊问题','副作用／不良反应相关','调药问题','安全性问题','药物疗效相关','延迟购药','其他药异地购买问题','停药','购买渠道/数量/价格','用药时长','用药方式','医保费用','日常生活问题（饮食、运动、康复等）','其他问题']" :key="opt" :label="opt">{{ opt }}</el-checkbox></div>
+                                            <div style="background:#fafafa;border-radius:4px;padding:14px;margin-bottom:16px;">
+                                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                                                    <div style="font-size:14px;font-weight:600;">{{ executeQuestionnaireModule?.name || executeTaskData.questionnaireName || '随访问卷' }}</div>
+                                                    <el-tag size="small" effect="plain">{{ executeTaskData.questionnaireCode || 'SC' }}</el-tag>
+                                                </div>
+                                                <div style="font-size:13px;color:#606266;line-height:1.8;">
+                                                    当前任务「{{ executeTaskData.serviceSummary }}」已绑定 {{ executeQuestionnaireQuestions.length }} 道问卷问题，下方题目来自问卷模块配置。
+                                                </div>
+                                            </div>
+                                            <div v-for="q in executeQuestionnaireQuestions" v-show="isQuestionVisible(q)" :key="q.id" style="border:1px solid #ebeef5;border-radius:6px;padding:14px 16px;margin-bottom:14px;background:#fff;">
+                                                <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;">
+                                                    <span style="color:#f56c6c;">*</span>
+                                                    <div style="flex:1;">
+                                                        <div style="font-size:14px;color:#303133;font-weight:600;line-height:1.7;">{{ String(q.order).padStart(3, '0') }}、{{ q.question }}</div>
+                                                        <div style="font-size:12px;color:#909399;margin-top:3px;">{{ q.label }} · {{ q.type }} · {{ q.optionCount }} 个选项</div>
+                                                    </div>
+                                                </div>
+                                                <el-radio-group v-if="q.answerType === 0" v-model="executeAnswers[q.id]" style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;">
+                                                    <div v-for="opt in q.options" :key="opt.sort" style="width:100%;">
+                                                        <el-radio :label="opt.answerText">{{ opt.answerText }}</el-radio>
+                                                        <el-input v-if="executeAnswers[q.id] === opt.answerText && needsOptionText(q, opt)" v-model="executeAnswers[q.id + '_' + opt.sort + '_text']" size="small" :placeholder="opt.textTip || '请补充说明'" style="margin:6px 0 0 24px;width:360px;"></el-input>
+                                                    </div>
+                                                </el-radio-group>
+                                                <el-checkbox-group v-else v-model="executeAnswers[q.id]" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;">
+                                                    <div v-for="opt in q.options" :key="opt.sort">
+                                                        <el-checkbox :label="opt.answerText">{{ opt.answerText }}</el-checkbox>
+                                                        <el-input v-if="Array.isArray(executeAnswers[q.id]) && executeAnswers[q.id].includes(opt.answerText) && needsOptionText(q, opt)" v-model="executeAnswers[q.id + '_' + opt.sort + '_text']" size="small" :placeholder="opt.textTip || '请补充说明'" style="margin:6px 0 0 24px;width:320px;"></el-input>
+                                                    </div>
+                                                </el-checkbox-group>
+                                            </div>
                                         </div>
-                                        <div id="section-medicine" style="margin-bottom:20px;"><div style="font-size:14px;margin-bottom:10px;"><span style="color:#f56c6c;">*</span> 005、关于以上随访中患者疑问是否有问题未解决？</div><el-input type="textarea" :rows="3" placeholder="请输入未解决的具体问题..."></el-input></div>
                                         <div id="section-summary" style="margin-bottom:20px;"><div style="font-size:15px;font-weight:600;margin-bottom:12px;padding-left:10px;border-left:3px solid #409eff;">随访小结</div><el-input type="textarea" :rows="4" placeholder="请输入随访小结..."></el-input></div>
                                         <div id="section-care" style="margin-bottom:20px;"><div style="font-size:15px;font-weight:600;margin-bottom:12px;padding-left:10px;border-left:3px solid #409eff;">患者关怀随访</div><div style="font-size:13px;color:#909399;padding:20px 0;">暂无患者关怀随访表单</div></div>
                                         <div id="section-doctor" style="margin-bottom:20px;"><div style="font-size:15px;font-weight:600;margin-bottom:12px;padding-left:10px;border-left:3px solid #409eff;">患者关于主治医师相关</div><div style="font-size:13px;color:#909399;padding:20px 0;">暂无相关表单</div></div>
@@ -1264,6 +1289,7 @@
                 <el-table-column prop="order" label="排序" width="60" align="center"></el-table-column>
                 <el-table-column prop="label" label="标签" min-width="200" show-overflow-tooltip></el-table-column>
                 <el-table-column prop="type" label="类型" width="80" align="center"></el-table-column>
+                <el-table-column prop="optionCount" label="选项数" width="80" align="center"></el-table-column>
                 <el-table-column prop="question" label="问题" min-width="250" show-overflow-tooltip></el-table-column>
                 <el-table-column prop="isRequired" label="是否必答" width="100" align="center"></el-table-column>
                 <el-table-column prop="isTriggerByAnswer" label="是否通过回答选项触发" width="180" align="center"></el-table-column>
@@ -1530,6 +1556,7 @@
     <script src="https://unpkg.com/element-plus"></script>
     
     <script src="js/data.js"></script>
+    <script src="js/questionnaires.js"></script>
     <script src="js/base-data.js"></script>
     <script src="js/app.js"></script>
 </body>

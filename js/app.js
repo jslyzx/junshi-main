@@ -126,6 +126,7 @@ const app = createApp({
         const executeTaskData = ref({});
         const executeActiveTab = ref('history');
         const executePersonalExpanded = ref(false);
+        const executeAnswers = reactive({});
         const executeFormSections = ref([
             { id: 'tips', title: '随访重点提示', isParent: true },
             { id: 'basic', title: '随访基本情况', isParent: true },
@@ -134,7 +135,6 @@ const app = createApp({
             { id: 'success', title: '是否联系成功', isChild: true },
             { id: 'indication', title: '项目适应症', isChild: true },
             { id: 'questionnaire', title: '君实随访问答', isParent: true },
-            { id: 'medicine', title: '用药方式', isChild: true },
             { id: 'summary', title: '随访小结', isChild: true },
             { id: 'care', title: '患者关怀随访', isParent: true },
             { id: 'doctor', title: '患者关于主治医师...', isParent: true },
@@ -143,6 +143,23 @@ const app = createApp({
         ]);
         const executeActiveSection = ref('tips');
         const executeProgress = ref(8);
+        const executeQuestionnaireModule = computed(() => getQuestionnaireModule(executeTaskData.value.questionnaireCode || 'SC'));
+        const executeQuestionnaireQuestions = computed(() => getQuestionnaireQuestions(executeTaskData.value.questionnaireCode || 'SC'));
+
+        const needsOptionText = (question, option) => {
+            if (!option) return false;
+            if (option.textTip) return true;
+            return option.isText === 0;
+        };
+
+        const isQuestionVisible = (question) => {
+            if (!question.triggerRules || question.triggerRules.length === 0) return true;
+            return question.triggerRules.every((rule) => {
+                const answer = executeAnswers[rule.relationId];
+                if (Array.isArray(answer)) return answer.some(item => rule.optionValues.includes(item));
+                return rule.optionValues.includes(answer);
+            });
+        };
 
         const scrollToSection = (sectionId) => {
             executeActiveSection.value = sectionId;
@@ -171,6 +188,10 @@ const app = createApp({
 
         const handleExecuteTask = (row) => {
             executeTaskData.value = { ...row };
+            Object.keys(executeAnswers).forEach(key => delete executeAnswers[key]);
+            getQuestionnaireQuestions(row.questionnaireCode || 'SC').forEach((question) => {
+                executeAnswers[question.id] = question.answerType === 1 ? [] : '';
+            });
             executeActiveTab.value = 'history';
             executePersonalExpanded.value = false;
             executeProgress.value = 8;
@@ -448,6 +469,38 @@ const app = createApp({
         const questionnaireQuestionVisible = ref(false);
         const questionData = ref([]);
 
+        const normalizeQuestion = (question) => ({
+            id: question.id,
+            order: question.sort || question.order,
+            label: question.title || question.label || question.questionName,
+            type: question.answerType === 1 ? '多选' : '单选',
+            answerType: question.answerType,
+            question: question.questionName || question.question,
+            options: Array.isArray(question.options) ? question.options : [],
+            optionCount: Array.isArray(question.options) ? question.options.length : 0,
+            triggerRules: question.triggerRules || [],
+            isTriggered: question.isTriggered,
+            isRequired: '是',
+            isTriggerByAnswer: question.isTriggered === 0 ? '否' : '是',
+            creator: question.createName || question.creator || '超级管理员',
+            createTime: question.createTime || '2026-03-30 09:58:51',
+            updater: question.updateName || question.updater || '超级管理员',
+            updateTime: question.updateTime || '2026-03-30 09:58:51'
+        });
+
+        const getQuestionnaireModule = (code) => {
+            const modules = window.QUESTIONNAIRE_MODULES || {};
+            return modules[code] || null;
+        };
+
+        const getQuestionnaireQuestions = (code) => {
+            const module = getQuestionnaireModule(code);
+            if (module) {
+                return module.questions.map(normalizeQuestion).sort((a, b) => a.order - b.order);
+            }
+            return (QUESTION_MOCK_DB[code] || []).map(normalizeQuestion).sort((a, b) => a.order - b.order);
+        };
+
         const QUESTION_MOCK_DB = {
             'CQ': [ // 超期随访问卷
                 { id: 101, order: 1, label: '超期原因', type: '单选', question: '您好，请问您近期未按时进行复诊/随访的原因是什么？', isRequired: '是', isTriggerByAnswer: '是', creator: '超级管理员', createTime: '2025-12-05 09:47:40', updater: '超级管理员', updateTime: '2025-12-05 09:47:40' },
@@ -479,7 +532,7 @@ const app = createApp({
 
         const handleQuestionAdd = () => { ElementPlus.ElMessage.success('点击了新增问题'); };
         const openQuestionnaireQuestions = (row) => {
-            const list = QUESTION_MOCK_DB[row.code] || [];
+            const list = getQuestionnaireQuestions(row.code);
             questionData.value = list;
             questionTotal.value = list.length;
             questionnaireQuestionVisible.value = true;
@@ -991,6 +1044,7 @@ const app = createApp({
             isCommonPage, isArticlePage, isBaseDataPage, isExecutePage, isPatientDetailPage,
             patientDetailData, openPatientDetail,
             executeTaskData, executeActiveTab, executePersonalExpanded,
+            executeQuestionnaireModule, executeQuestionnaireQuestions, executeAnswers, needsOptionText, isQuestionVisible,
             executeFormSections, executeActiveSection, executeProgress,
             scrollToSection, handleExecuteTask, handleFormScroll,
             handleExecuteConfirm,

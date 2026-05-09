@@ -185,9 +185,9 @@ const MOCK_DATA = {
             { label: '更新时间', key: 'updateDate' }
         ],
         data: [
-            { id: 1, code: 'CQ', name: '超期随访问卷', content: '', project: '君实随访', status: '启用', creator: '超级管理员', createDate: '2026-03-24 18:12:43', updater: '超级管理员', updateDate: '2026-03-24 18:15:00' },
-            { id: 2, code: 'FG', name: '复购随访问卷', content: '', project: '君实随访', status: '启用', creator: '超级管理员', createDate: '2026-03-24 16:58:30', updater: '超级管理员', updateDate: '2026-03-24 16:59:00' },
-            { id: 3, code: 'SC', name: '首次建档随访问卷', content: '', project: '君实随访', status: '启用', creator: '超级管理员', createDate: '2026-03-24 15:08:54', updater: '超级管理员', updateDate: '2026-03-24 15:10:00' }
+            { id: 3, code: 'SC', name: '首次建档随访问卷', content: '患者身份、适应症、分期、治疗方案、联合用药、复诊周期、症状变化和不良反应登记', project: '君实随访', status: '启用', creator: '超级管理员', createDate: '2026-03-30 09:58:51', updater: '超级管理员', updateDate: '2026-04-07 15:16:00' },
+            { id: 2, code: 'FG', name: '复购随访问卷', content: '用药情况、推迟/减药/停药原因、症状变化、不良反应、合并症及患者问题收集', project: '君实随访', status: '启用', creator: '超级管理员', createDate: '2026-03-24 17:51:25', updater: '超级管理员', updateDate: '2026-03-30 14:03:03' },
+            { id: 1, code: 'CQ', name: '超期随访问卷', content: '超期后用药状态、推迟/停药原因及不良反应追问', project: '君实随访', status: '启用', creator: '超级管理员', createDate: '2026-03-30 14:12:45', updater: '超级管理员', updateDate: '2026-03-30 14:27:05' }
         ]
     },
     'indications': {
@@ -291,12 +291,9 @@ const MOCK_DATA = {
             { label: '创建时间', key: 'createDate' }
         ],
         data: [
-            { id: 1, status: '待执行', patientId: '3a7143ee-a7ba-40...', patientName: '郭*轩', phone: '139****3112', planDate: '2026-04-30', firstPurchase: '2024-02-19', product: '特瑞普利单抗注射液', indication: '非小细胞肺癌', taskId: 'F260420100005449', serviceSummary: '复购随访-1', overdue: '', executor: '', execDate: '', createDate: '2026-04-20 09:45:38' },
-            { id: 2, status: '已完成', patientId: '3a7143ee-a7ba-40...', patientName: '郭*轩', phone: '139****3112', planDate: '2026-04-01', firstPurchase: '2024-02-19', product: '特瑞普利单抗注射液', indication: '小细胞肺癌', taskId: 'F260329100005181', serviceSummary: '召回随访', overdue: '', executor: '测试药师', execDate: '2026-04-03 15:06:49', createDate: '2026-03-29 03:00:00' },
-            { id: 6, status: '已超期', patientId: '94b47460-0557-45...', patientName: '荆*', phone: '159****2121', planDate: '2026-01-15', firstPurchase: '2025-12-30', product: '特瑞普利单抗注射液', indication: '肾癌', taskId: 'F260115100002124', serviceSummary: '召回随访', overdue: '98', executor: '', execDate: '', createDate: '2026-01-10 10:00:00' },
-            { id: 7, status: '即将到期', patientId: 'fe7b7ef9-25d5-4b4...', patientName: '付*娣', phone: '135****5666', planDate: '2026-04-25', firstPurchase: '2025-11-06', product: '特瑞普利单抗注射液', indication: '尿路上皮癌', taskId: 'F260122100002122', serviceSummary: '召回随访', overdue: '', executor: '', execDate: '', createDate: '2026-04-20 14:00:00' },
-            { id: 8, status: '执行失败', patientId: 'a1d32247-b34b-46f...', patientName: '刘*宏', phone: '130****6562', planDate: '2026-03-20', firstPurchase: '2025-11-05', product: '特瑞普利单抗注射液', indication: '胃癌', taskId: 'F260320100002121', serviceSummary: '复购随访', overdue: '', executor: '王药师', execDate: '2026-03-21 11:00:00', createDate: '2026-03-15 09:00:00' },
-            { id: 3, status: '已完成', patientId: 'cabb7523-21c1-40a...', patientName: '高*星', phone: '133****9515', planDate: '2026-03-26', firstPurchase: '2024-07-16', product: '特瑞普利单抗注射液', indication: '结直肠癌', taskId: 'F260323100005104', serviceSummary: '召回随访', overdue: '', executor: '测试药师', execDate: '2026-03-27 22:12:13', createDate: '2026-03-23 03:00:01' }
+            { id: 1, status: '待执行', patientId: '3a7143ee-a7ba-40...', patientName: '郭*轩', phone: '139****3112', planDate: '2026-05-10', firstPurchase: '2026-05-03', product: '特瑞普利单抗注射液', indication: '非小细胞肺癌', taskId: 'F260510100005449', serviceSummary: '首次建档随访', questionnaireCode: 'SC', questionnaireName: '首次建档随访问卷', overdue: '', executor: '', execDate: '', createDate: '2026-05-09 09:45:38' },
+            { id: 2, status: '即将到期', patientId: 'fe7b7ef9-25d5-4b4...', patientName: '付*娣', phone: '135****5666', planDate: '2026-05-11', firstPurchase: '2026-04-20', product: '特瑞普利单抗注射液', indication: '尿路上皮癌', taskId: 'F260511100002122', serviceSummary: '复购随访-1', questionnaireCode: 'FG', questionnaireName: '复购随访问卷', overdue: '', executor: '', execDate: '', createDate: '2026-05-09 10:20:00' },
+            { id: 3, status: '待执行', patientId: '94b47460-0557-45...', patientName: '荆*', phone: '159****2121', planDate: '2026-05-09', firstPurchase: '2026-03-30', product: '特瑞普利单抗注射液', indication: '肾癌', taskId: 'F260509100002124', serviceSummary: '超期随访', questionnaireCode: 'CQ', questionnaireName: '超期随访问卷', overdue: '3', executor: '', execDate: '', createDate: '2026-05-06 10:00:00' }
         ]
     },
     'satisfaction-report': {
