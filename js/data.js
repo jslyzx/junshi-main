@@ -214,18 +214,12 @@ const MOCK_DATA = {
         columns: [
             { label: '编号', key: 'code' },
             { label: '话术标题', key: 'title' },
-            { label: '话术', key: 'content' },
-            { label: '关联项目', key: 'project' },
-            { label: '商品名', key: 'productName' },
-            { label: '商品通用名', key: 'genericName' },
-            { label: '适应症', key: 'indication' },
+            { label: '关联问题/场景', key: 'scene' },
+            { label: '话术内容', key: 'content' },
             { label: '创建人', key: 'creator' },
             { label: '创建时间', key: 'date' }
         ],
-        data: [
-            { id: 1, code: 'H001', title: '入组欢迎辞', content: '您好，欢迎加入君实随访项目。建议话术：“感谢您选择拓益，我们将全程为您提供随访服务。”', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '通用', creator: '超级管理员', date: '2026-01-14' },
-            { id: 2, code: 'H002', title: '副作用咨询', content: '关于副作用的解释。建议话术：“免疫治疗可能会有一些副作用，如皮疹或疲劳，请及时反馈。”', project: '君实随访', productName: '拓益', genericName: '特瑞普利单抗注射液', indication: '通用', creator: '超级管理员', date: '2026-01-14' }
-        ]
+        data: []
     },
     'sales-stats': {
         columns: [
@@ -381,19 +375,41 @@ const MOCK_DATA = {
 
 const MENU_CONFIG = [
     {
-        title: '随访任务',
-        id: 'followup-task',
-        children: []
+        title: '随访中心',
+        id: 'followup',
+        children: [
+            { title: '随访任务', id: 'followup-task' },
+            { title: '消息/短信记录', id: 'sms-records' }
+        ]
     },
     {
-        title: '异常管理',
+        title: '异常/AE管理',
         id: 'exception-manage',
         children: []
     },
     {
-        title: '患者列表',
+        title: '患者管理',
         id: 'patient-list',
         children: []
+    },
+    {
+        title: '随访表单配置',
+        id: 'form-config',
+        children: [
+            { title: '项目规则', id: 'psp-rules' },
+            { title: '表单设计器', id: 'form-designer' },
+            { title: '话术库', id: 'scripts' },
+            { title: '问卷模块', id: 'questionnaire' }
+        ]
+    },
+    {
+        title: '报表中心',
+        id: 'report',
+        children: [
+            { title: '报表/KPI', id: 'kpi-report' },
+            { title: '随访率统计', id: 'followup-rate' },
+            { title: '满意度报表', id: 'satisfaction-report' }
+        ]
     },
     {
         title: '基础信息管理',
@@ -413,6 +429,17 @@ const MENU_CONFIG = [
         ]
     },
     {
+        title: '项目管理',
+        id: 'project',
+        children: [
+            { title: '项目随访', id: 'project-followup' },
+            { title: '项目标签', id: 'project-tag' },
+            { title: '项目适应症', id: 'indications' },
+            { title: '留言管理', id: 'message-manage' },
+            { title: '投诉管理', id: 'complaint-manage' }
+        ]
+    },
+    {
         title: '配置管理',
         id: 'config',
         children: [
@@ -420,21 +447,6 @@ const MENU_CONFIG = [
             { title: '基础数据', id: 'base-data' },
             { title: '科室管理', id: 'medical-dept' },
             { title: '日志记录', id: 'logs' }
-        ]
-    },
-    {
-        title: '项目管理',
-        id: 'project',
-        children: [
-            { title: '项目随访', id: 'project-followup' },
-            { title: '项目标签', id: 'project-tag' },
-            { title: '问卷模块', id: 'questionnaire' },
-            { title: '项目适应症', id: 'indications' },
-            { title: '项目话术', id: 'scripts' },
-            { title: '随访率统计', id: 'followup-rate' },
-            { title: '满意度报表', id: 'satisfaction-report' },
-            { title: '留言管理', id: 'message-manage' },
-            { title: '投诉管理', id: 'complaint-manage' }
         ]
     },
     {

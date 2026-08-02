@@ -17,7 +17,7 @@ const app = createApp({
         });
 
         const isCommonPage = computed(() => {
-            return MOCK_DATA[activePath.value] && activePath.value !== 'base-data' && activePath.value !== 'message-manage' && activePath.value !== 'consent-version';
+            return MOCK_DATA[activePath.value] && !['base-data', 'message-manage', 'consent-version', 'exception-manage', 'form-designer', 'kpi-report'].includes(activePath.value);
         });
 
         const isArticlePage = computed(() => {
@@ -122,43 +122,104 @@ const app = createApp({
 
 
 
-        // 执行随访页面状态
+        // 执行随访页面状态（PSP V0.4 问卷引擎）
         const executeTaskData = ref({});
-        const executeActiveTab = ref('history');
+        const executeActiveTab = ref('contact');
         const executePersonalExpanded = ref(false);
         const executeAnswers = reactive({});
-        const executeFormSections = ref([
-            { id: 'tips', title: '随访重点提示', isParent: true },
-            { id: 'basic', title: '随访基本情况', isParent: true },
-            { id: 'contact', title: '实际联系方式', isChild: true },
-            { id: 'phone', title: '联系电话', isChild: true },
-            { id: 'success', title: '是否联系成功', isChild: true },
-            { id: 'indication', title: '项目适应症', isChild: true },
-            { id: 'questionnaire', title: '君实随访问答', isParent: true },
-            { id: 'summary', title: '随访小结', isChild: true },
-            { id: 'care', title: '患者关怀随访', isParent: true },
-            { id: 'doctor', title: '患者关于主治医师...', isParent: true },
-            { id: 'issues', title: '关于以上相关问题...', isParent: true },
-            { id: 'user', title: '用户反馈', isParent: true }
-        ]);
-        const executeActiveSection = ref('tips');
-        const executeProgress = ref(8);
-        const executeQuestionnaireModule = computed(() => getQuestionnaireModule(executeTaskData.value.questionnaireCode || 'SC'));
-        const executeQuestionnaireQuestions = computed(() => getQuestionnaireQuestions(executeTaskData.value.questionnaireCode || 'SC'));
+        const executeFormSections = ref([]);
+        const executeActiveSection = ref('mod-1');
+        const executeProgress = ref(5);
+        const safetyConfirmed = ref(false);
+        const summaryText = ref('');
+        const summaryDirty = ref(false);
+        const escalationChoice = ref([]);
+        const escalationNote = ref('');
+        const executeContacts = ref([]);
+        const newContact = reactive({ channel: '电话', result: '已接通' });
 
-        const needsOptionText = (question, option) => {
-            if (!option) return false;
-            if (option.textTip) return true;
-            return option.isText === 0;
+        // 9 类任务 → 固定带出模块（8/9 为条件触发模块）
+        const EXEC_MODULE_MAP = {
+            '项目说明与授权': [1, 2, 7, 8, 9, 13],
+            '首触达建档': [1, 3, 7, 8, 9, 13],
+            '周期治疗/复诊随访': [1, 4, 5, 6, 7, 8, 9, 12, 13],
+            '超期未治疗/未复诊召回': [1, 5, 6, 7, 8, 9, 13],
+            '退出/拒访管理': [1, 11, 7, 8, 9, 13],
+            '异常症状/AE即时随访': [1, 7, 8, 9, 13],
+            '特殊情形/质量投诉处理': [1, 7, 9, 8, 10, 13],
+            'PV/事件补充随访': [1, 10, 8, 9, 13],
+            '复诊记录提交': [14]
         };
+        // 事件类任务强制展示的条件模块
+        const FORCED_COND_MODULES = {
+            '异常症状/AE即时随访': [8],
+            '特殊情形/质量投诉处理': [9]
+        };
+        const AE_LINE_OPTS = ['身体不适/症状', '检查异常', '门诊/急诊/住院'];
+        const SP_MAP = { '妊娠/哺乳/父源暴露': '妊娠/哺乳/父源暴露', '用药错误': '用药错误', '产品质量问题': '产品质量投诉', '缺乏疗效/疾病进展': '缺乏疗效/疾病进展', '误用/过量/相互作用/职业暴露': '误用/过量/职业暴露', '其他安全性信息': '其他安全性信息' };
 
-        const isQuestionVisible = (question) => {
-            if (!question.triggerRules || question.triggerRules.length === 0) return true;
-            return question.triggerRules.every((rule) => {
-                const answer = executeAnswers[rule.relationId];
-                if (Array.isArray(answer)) return answer.some(item => rule.optionValues.includes(item));
-                return rule.optionValues.includes(answer);
+        const executeModuleList = computed(() => {
+            const ids = EXEC_MODULE_MAP[executeTaskData.value.taskType] || EXEC_MODULE_MAP['周期治疗/复诊随访'];
+            return ids.map(id => window.PSP_MODULES.find(m => m.id === id)).filter(Boolean);
+        });
+        const moduleQuestions = (moduleId) => {
+            const name = (window.PSP_MODULES.find(m => m.id === moduleId) || {}).name;
+            return window.PSP_QUESTIONS.filter(q => q.module === name);
+        };
+        const pspTypeLabel = (t) => ({ radio: '单选', checkbox: '多选', text: '文本', date: '日期', month: '时间文本（年月）', system: '系统字段' })[t] || t;
+        const optMatch = (ans, anyOf) => anyOf.some(a => ans === a || ans.startsWith(a + '：') || ans.startsWith(a + ':'));
+        const isPspQuestionVisible = (q) => {
+            if (!q.trigger) return true;
+            const forced = FORCED_COND_MODULES[executeTaskData.value.taskType] || [];
+            const qModuleId = (window.PSP_MODULES.find(m => m.name === q.module) || {}).id;
+            if (forced.includes(qModuleId) && [49, 82].includes(q.trigger.q)) return true;
+            const ans = executeAnswers[q.trigger.q];
+            if (q.trigger.anyOf === '*') return Array.isArray(ans) ? ans.length > 0 : !!ans;
+            if (Array.isArray(ans)) return ans.some(a => optMatch(a, q.trigger.anyOf));
+            return ans ? optMatch(ans, q.trigger.anyOf) : false;
+        };
+        const isModuleVisible = (mod) => {
+            if (![8, 9].includes(mod.id)) return true;
+            const forced = FORCED_COND_MODULES[executeTaskData.value.taskType] || [];
+            if (forced.includes(mod.id)) return true;
+            return moduleQuestions(mod.id).some(q => isPspQuestionVisible(q));
+        };
+        const executePatient = computed(() => window.PSP_PATIENTS.find(p => p.patientId === executeTaskData.value.patientId) || {});
+        const executePatientRecords = computed(() => RECORDS.filter(r => r.patientId === executeTaskData.value.patientId));
+        const executePatientEvents = computed(() => EVENTS.filter(e => e.patientId === executeTaskData.value.patientId));
+        const systemFieldValue = (no) => {
+            const p = executePatient.value; const t = executeTaskData.value;
+            const map = { 1: t.taskId, 2: PSP_TODAY, 3: operatorName.value, 4: p.patientId, 5: p.hospital, 6: p.dept, 7: p.gender, 8: (p.age || '—') + ' 岁' };
+            return map[no] || '—';
+        };
+        const emergencyTriggered = computed(() => {
+            const a = executeAnswers[78];
+            return Array.isArray(a) && a.length > 0 && !a.includes('无以上情况');
+        });
+        const buildAutoSummary = () => {
+            const lines = [];
+            executeModuleList.value.forEach(mod => {
+                if (!isModuleVisible(mod)) return;
+                moduleQuestions(mod.id).forEach(q => {
+                    if (!isPspQuestionVisible(q)) return;
+                    const ans = executeAnswers[q.no];
+                    const filled = Array.isArray(ans) ? ans.length > 0 : !!ans;
+                    if (!filled) return;
+                    if (['radio', 'checkbox'].includes(q.type) && q.options.some(o => o.inSummary)) {
+                        lines.push('【' + q.content + '】' + (Array.isArray(ans) ? ans.join('、') : ans));
+                    }
+                });
             });
+            return lines.join('\n');
+        };
+        const regenerateSummary = () => { summaryText.value = buildAutoSummary(); summaryDirty.value = false; };
+        const onPspAnswerChange = (q) => {
+            if (q.no === 48) safetyConfirmed.value = true;
+            if (!summaryDirty.value) summaryText.value = buildAutoSummary();
+        };
+        const addContactRecord = () => {
+            executeContacts.value.unshift({ time: PSP_TODAY + ' ' + new Date().toTimeString().slice(0, 5), channel: newContact.channel, result: newContact.result, note: '坐席 ' + operatorShort.value + ' 记录' });
+            ElementPlus.ElMessage.success('联系记录已添加');
         };
 
         const scrollToSection = (sectionId) => {
@@ -189,52 +250,161 @@ const app = createApp({
         const handleExecuteTask = (row) => {
             executeTaskData.value = { ...row };
             Object.keys(executeAnswers).forEach(key => delete executeAnswers[key]);
-            getQuestionnaireQuestions(row.questionnaireCode || 'SC').forEach((question) => {
-                executeAnswers[question.id] = question.answerType === 1 ? [] : '';
-            });
-            executeActiveTab.value = 'history';
+            const ids = EXEC_MODULE_MAP[row.taskType] || EXEC_MODULE_MAP['周期治疗/复诊随访'];
+            ids.forEach(mid => moduleQuestions(mid).forEach(q => {
+                if (q.type === 'checkbox') executeAnswers[q.no] = [];
+                else if (q.type !== 'system') executeAnswers[q.no] = '';
+                (q.options || []).forEach(o => { if (o.default && q.type === 'radio') executeAnswers[q.no] = o.text; });
+            }));
+            safetyConfirmed.value = false;
+            summaryText.value = '';
+            summaryDirty.value = false;
+            escalationChoice.value = [];
+            escalationNote.value = '';
+            executeContacts.value = [{ time: PSP_TODAY + ' 09:12', channel: '电话', result: '已接通', note: '本次随访通话开始' }];
+            executeActiveTab.value = 'contact';
             executePersonalExpanded.value = false;
-            executeProgress.value = 8;
-            executeActiveSection.value = 'tips';
+            executeProgress.value = 5;
+            executeActiveSection.value = 'mod-1';
+            executeFormSections.value = executeModuleList.value.map(m => ({ id: 'mod-' + m.id, title: m.id + '. ' + m.name })).concat([{ id: 'summary', title: '13. 随访小结' }]);
             const tabId = 'execute-task-' + row.id;
-            navigate(tabId, '执行随访');
+            navigate(tabId, '执行随访 · ' + row.patientName);
         };
 
-        const handleExecuteConfirm = () => {
-            ElementPlus.ElMessageBox.confirm(
-                '智能识别当前患者存在异常事件：减量服药，是否上报主治医生？',
-                '智能识别提示',
-                {
-                    confirmButtonText: '是',
-                    cancelButtonText: '否',
-                    type: 'warning',
-                    distinguishCancelAndClose: true
+        // 提交集中随访：生成随访记录 + （总筛阳性时）异常记录
+        const submitPspFollowup = () => {
+            const hasSafetyModule = executeModuleList.value.some(m => m.id === 7);
+            if (hasSafetyModule && !safetyConfirmed.value) {
+                ElementPlus.ElMessage.error('安全性总筛须主动确认后才能提交');
+                scrollToSection('mod-7');
+                return;
+            }
+            for (const mod of executeModuleList.value) {
+                if (!isModuleVisible(mod)) continue;
+                for (const q of moduleQuestions(mod.id)) {
+                    if (!isPspQuestionVisible(q) || q.type === 'system' || q.required === 'optional') continue;
+                    const ans = executeAnswers[q.no];
+                    const filled = Array.isArray(ans) ? ans.length > 0 : (ans !== '' && ans != null);
+                    if (!filled) {
+                        ElementPlus.ElMessage.error('存在未作答的必答题：Q' + q.no + ' ' + q.content);
+                        scrollToSection('mod-' + mod.id);
+                        return;
+                    }
                 }
-            ).then(() => {
-                // 选择“是”
-                ElementPlus.ElMessage({
-                    type: 'success',
-                    message: '上报完成并已记录',
+            }
+            if (!summaryText.value.trim()) {
+                ElementPlus.ElMessage.error('请填写随访小结');
+                scrollToSection('summary');
+                return;
+            }
+            if (escalationChoice.value.length === 0) {
+                ElementPlus.ElMessage.error('请选择本次随访是否需要升级/转交');
+                scrollToSection('summary');
+                return;
+            }
+
+            const now = PSP_TODAY + ' ' + new Date().toTimeString().slice(0, 5);
+            const recId = 'REC-2026-' + String(93 + (RECORDS.length - 10)).padStart(4, '0');
+            const p = executePatient.value;
+
+            // 作答快照
+            const sections = [];
+            executeModuleList.value.forEach(mod => {
+                if (!isModuleVisible(mod)) return;
+                const qa = [];
+                moduleQuestions(mod.id).forEach(q => {
+                    if (!isPspQuestionVisible(q) || q.type === 'system') return;
+                    const ans = executeAnswers[q.no];
+                    const filled = Array.isArray(ans) ? ans.length > 0 : !!ans;
+                    if (!filled) return;
+                    qa.push({ q: 'Q' + q.no + ' ' + (q.desc || q.content), a: Array.isArray(ans) ? ans.join('、') : ans });
                 });
+                if (qa.length) sections.push({ module: mod.id + '. ' + mod.name, qa });
+            });
+
+            // 事件生成
+            const newEvents = [];
+            const ans49 = executeAnswers[49] || [];
+            if (Array.isArray(ans49) && ans49.some(a => AE_LINE_OPTS.includes(a))) {
+                const riskMap = { '轻度/常规记录线索': '轻度/常规记录', '关注跟进线索': '关注跟进', '快速/紧急升级线索': '快速/紧急', '无法判断': '无法判断（转PV初筛）' };
+                const ev = {
+                    id: 'EV-2026-' + String(53 + (EVENTS.length - 7)).padStart(4, '0'),
+                    patientId: p.patientId, patientName: p.name, type: '不良事件AE', typeGroup: 'AE',
+                    summary: executeAnswers[52] || '安全性总筛阳性，详见随访记录 ' + recId,
+                    occurDate: executeAnswers[53] || PSP_TODAY, reportDate: PSP_TODAY,
+                    risk: riskMap[executeAnswers[79]] || '关注跟进', status: '待处理', source: '专员随访',
+                    sourceTask: executeTaskData.value.taskId, owner: '陈敏（项目经理）',
+                    four: {
+                        patient: p.name + '（' + p.patientId + '），' + p.gender + '，' + p.age + ' 岁，' + p.indication + '，' + p.hospital + ' ' + p.dept,
+                        reporter: (executeAnswers[50] || '患者本人') + '，随访坐席 ' + operatorShort.value + ' 记录',
+                        event: (executeAnswers[52] || '') + '；发生时间：' + (executeAnswers[53] || '不详') + '；当前状态：' + (executeAnswers[54] || '未知') + '；症状分类：' + (executeAnswers[58] || '未归类') + (emergencyTriggered.value ? '；紧急升级线索：' + executeAnswers[78].join('、') : ''),
+                        product: '拓益（特瑞普利单抗注射液），' + (p.regimen || '') + '，首次用药 ' + (p.firstUse || '不详')
+                    },
+                    ctcae: '项目风险识别：' + (executeAnswers[79] || '未分级') + '（非 CTCAE 正式分级）',
+                    records: [recId],
+                    trail: [{ time: now, operator: operatorName.value, action: '创建异常记录', from: '', to: '待处理', remark: '集中随访安全性总筛阳性，来源任务 ' + executeTaskData.value.taskId + (emergencyTriggered.value ? '；含紧急升级线索，建议优先处理' : '') }]
+                };
+                EVENTS.unshift(ev);
+                newEvents.push(ev);
+            }
+            const spHit = (Array.isArray(ans49) ? ans49 : []).find(a => SP_MAP[a]);
+            if (spHit) {
+                const spType = SP_MAP[spHit];
+                const isQuality = spType === '产品质量投诉';
+                const ans83 = executeAnswers[83];
+                const ans91 = executeAnswers[91];
+                const withAE = isQuality ? (ans91 === '已使用且出现不适' || ans91 === '不确定') : (ans83 === '是' || ans83 === '不确定');
+                const ev = {
+                    id: 'EV-2026-' + String(54 + (EVENTS.length - 7)).padStart(4, '0'),
+                    patientId: p.patientId, patientName: p.name, type: spType, typeGroup: isQuality ? '质量投诉' : '特殊情形',
+                    summary: executeAnswers[84] || ('集中随访获知特殊情形：' + spType + '，详见随访记录 ' + recId),
+                    occurDate: PSP_TODAY, reportDate: PSP_TODAY,
+                    risk: withAE ? '快速/紧急' : '关注跟进', status: '待处理', source: '专员随访',
+                    sourceTask: executeTaskData.value.taskId, owner: '陈敏（项目经理）',
+                    four: {
+                        patient: p.name + '（' + p.patientId + '），' + p.gender + '，' + p.age + ' 岁，' + p.indication + '，' + p.hospital + ' ' + p.dept,
+                        reporter: (executeAnswers[50] || '患者本人') + '，随访坐席 ' + operatorShort.value + ' 记录',
+                        event: executeAnswers[84] || '特殊情形：' + spType + '（事实详见随访记录）',
+                        product: '拓益（特瑞普利单抗注射液），' + (p.regimen || '') + (executeAnswers[92] ? '；产品信息：' + executeAnswers[92] : '')
+                    },
+                    ctcae: '特殊情形·' + spType + (withAE ? '（伴AE，PV必复核）' : ''),
+                    quality: isQuality ? {
+                        problemTypes: executeAnswers[90] || [], used: ans91 || '不清楚', withAE,
+                        batchNo: executeAnswers[92] || '待补充', expiry: '待补充', foundAt: PSP_TODAY + ' 随访获知',
+                        evidences: (executeAnswers[93] || []).length ? executeAnswers[93] : ['暂无凭证'],
+                        route: withAE ? '质量＋PV 同步（伴AE，PV必复核）' : '质量部门优先（边界不清时转 PV 初筛确认）'
+                    } : undefined,
+                    records: [recId],
+                    trail: [{ time: now, operator: operatorName.value, action: '创建异常记录', from: '', to: '待处理', remark: '集中随访自然获知特殊情形（' + spType + '），按分流路径记录，来源任务 ' + executeTaskData.value.taskId }]
+                };
+                EVENTS.unshift(ev);
+                newEvents.push(ev);
+            }
+
+            const rec = {
+                id: recId, patientId: p.patientId, patientName: p.name, date: now,
+                taskType: executeTaskData.value.taskType, taskId: executeTaskData.value.taskId,
+                executor: operatorName.value, summary: summaryText.value,
+                escalation: escalationChoice.value.join('、') + (escalationNote.value ? '（关联 ' + escalationNote.value + '）' : ''),
+                eventId: newEvents.length ? newEvents[0].id : '', sections
+            };
+            RECORDS.unshift(rec);
+
+            const task = TASKS.find(t => t.id === executeTaskData.value.id);
+            if (task) { task.status = '已完成'; task.executor = operatorShort.value; task.execDate = now; }
+
+            const msg = '随访已完成，生成随访记录 ' + recId + (newEvents.length ? '；异常记录 ' + newEvents.map(e => e.id).join('、') + ' 已进入异常/AE管理（待处理）' : '');
+            ElementPlus.ElMessageBox.confirm(msg, '提交成功', {
+                confirmButtonText: newEvents.length ? '前往异常管理处理' : '查看随访记录',
+                cancelButtonText: '返回任务列表',
+                type: 'success'
+            }).then(() => {
+                handleTabRemove(activePath.value);
+                if (newEvents.length) openPvDetail(newEvents[0]);
+                else openRecordView(rec);
+            }).catch(() => {
                 handleTabRemove(activePath.value);
                 handleMenuSelect('followup-task');
-            }).catch((action) => {
-                if (action === 'cancel') {
-                    // 选择“否”
-                    ElementPlus.ElMessageBox.prompt('请填写不上报原因', '提示', {
-                        confirmButtonText: '确定',
-                        cancelButtonText: '取消',
-                        inputPattern: /.+/,
-                        inputErrorMessage: '原因不能为空'
-                    }).then(({ value }) => {
-                        ElementPlus.ElMessage({
-                            type: 'info',
-                            message: '已记录不上报原因：' + value,
-                        });
-                        handleTabRemove(activePath.value);
-                        handleMenuSelect('followup-task');
-                    });
-                }
             });
         };
 
@@ -309,9 +479,9 @@ const app = createApp({
         };
 
         const navigate = (id, title) => {
-            if (!openTags.value.find(tag => tag.id === id)) {
-                openTags.value.push({ id, title });
-            }
+            const existing = openTags.value.find(tag => tag.id === id);
+            if (existing) existing.title = title;
+            else openTags.value.push({ id, title });
             // 切换页面时重置聊天模式，除非是留言管理
             if (id !== 'message-manage') {
                 isChatMode.value = false;
@@ -349,11 +519,13 @@ const app = createApp({
                 'article': 'fa-file-lines',
                 'article-patient': 'fa-book-open-reader',
                 'article-specialist': 'fa-chalkboard-user',
+                'followup': 'fa-headset',
                 'followup-task': 'fa-calendar-check',
                 'exception-manage': 'fa-triangle-exclamation',
                 'patient-list': 'fa-hospital-user',
                 'patient': 'fa-hospital-user',
-                'followup': 'fa-calendar-check',
+                'form-config': 'fa-file-pen',
+                'report': 'fa-chart-pie',
                 'complaint-manage': 'fa-bullhorn'
             };
             return icons[id] || 'fa-folder';
@@ -363,20 +535,20 @@ const app = createApp({
             if (command === 'logout') window.location.href = 'index.html';
         };
 
-        // 数据状态
+        // 数据状态（首页工作台关键指标）
         const taskStats = ref([
-            { label: '总入组目标', value: 1150, icon: 'fa-clipboard-list', color: '#409EFF', bg: 'linear-gradient(135deg, #e0f2ff 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(64,158,255,0.15)' },
-            { label: '已入组人数', value: 350, icon: 'fa-hourglass-half', color: '#E6A23C', bg: 'linear-gradient(135deg, #fff7e6 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(230,162,60,0.15)' },
-            { label: '即将到期', value: 5, icon: 'fa-calendar-days', color: '#F56C6C', bg: 'linear-gradient(135deg, #fff1f0 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(245,108,108,0.15)' },
-            { label: '本月已超期', value: 2, icon: 'fa-triangle-exclamation', color: '#F56C6C', bg: 'linear-gradient(135deg, #fff1f0 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(245,108,108,0.15)' },
-            { label: '今日已完成', value: 8, icon: 'fa-circle-check', color: '#67C23A', bg: 'linear-gradient(135deg, #f6ffed 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(103,194,58,0.15)' }
+            { label: '本月建档数', value: 23, sub: '较上月 +6 人', icon: 'fa-id-card', color: '#409EFF', bg: 'linear-gradient(135deg, #e0f2ff 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(64,158,255,0.15)', path: 'patient-list' },
+            { label: '随访完成率', value: '88.5%', sub: '本月 174 / 197 任务', icon: 'fa-circle-check', color: '#67C23A', bg: 'linear-gradient(135deg, #f6ffed 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(103,194,58,0.15)', path: 'kpi-report' },
+            { label: '触达率', value: '96.2%', sub: '电话 + 短信 + 平台消息', icon: 'fa-phone-volume', color: '#E6A23C', bg: 'linear-gradient(135deg, #fff7e6 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(230,162,60,0.15)', path: 'kpi-report' },
+            { label: '待处理AE / 异常', value: 3, sub: '含 1 件快速/紧急', icon: 'fa-triangle-exclamation', color: '#F56C6C', bg: 'linear-gradient(135deg, #fff1f0 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(245,108,108,0.15)', path: 'exception-manage' },
+            { label: '今日待办任务', value: 6, sub: '含 1 条 PV 补充随访', icon: 'fa-list-check', color: '#722ed1', bg: 'linear-gradient(135deg, #f9f0ff 0%, #ffffff 100%)', shadow: '0 4px 12px rgba(114,46,209,0.15)', path: 'followup-task' }
         ]);
 
         const analysisStats = ref([
-            { label: '随访率(人)', value: '98.5%', change: '+2.1%', icon: 'fa-user-check', color: '#409EFF' },
-            { label: '随访率(任务)', value: '86.2%', change: '+1.5%', icon: 'fa-chart-pie', color: '#67C23A' },
-            { label: '有效随访率', value: '92.4%', change: '-0.8%', icon: 'fa-bullseye', color: '#E6A23C' },
-            { label: '用药规范率', value: '94.0%', change: '+3.2%', icon: 'fa-capsules', color: '#F56C6C' }
+            { label: '随访完成率', value: '88.5%', change: '+2.3%', icon: 'fa-circle-check', color: '#67C23A' },
+            { label: '触达率', value: '96.2%', change: '+0.8%', icon: 'fa-phone-volume', color: '#409EFF' },
+            { label: '超期未复诊率', value: '6.8%', change: '-1.2%', icon: 'fa-calendar-xmark', color: '#E6A23C' },
+            { label: '复诊记录提交率', value: '91.3%', change: '+3.5%', icon: 'fa-file-circle-check', color: '#F56C6C' }
         ]);
 
         const recentTasks = computed(() => {
@@ -384,16 +556,17 @@ const app = createApp({
         });
 
         const quickActions = [
-            { title: '新增任务', icon: 'fa-plus', color: '#409EFF', path: 'followup-task' },
-            { title: '患者建档', icon: 'fa-id-card', color: '#67C23A', path: 'patient-list' },
-            { title: '统计报表', icon: 'fa-chart-line', color: '#E6A23C', path: 'followup-rate' },
-            { title: '知识库', icon: 'fa-book-medical', color: '#909399', path: 'article-patient' }
+            { title: '执行随访', icon: 'fa-phone', color: '#409EFF', path: 'followup-task' },
+            { title: '异常/AE处理', icon: 'fa-triangle-exclamation', color: '#F56C6C', path: 'exception-manage' },
+            { title: '表单配置', icon: 'fa-file-pen', color: '#67C23A', path: 'form-designer' },
+            { title: '报表/KPI', icon: 'fa-chart-line', color: '#E6A23C', path: 'kpi-report' }
         ];
 
         const systemNotices = ref([
-            { title: '系统维护公告', time: '10分钟前', type: 'info' },
-            { title: '有2条随访任务即将逾期', time: '1小时前', type: 'warning' },
-            { title: '成功导出3月销售分析报表', time: '3小时前', type: 'success' }
+            { title: 'PV 接口人要求补充 EV-2026-0040（储存错误）环节信息，已生成补充随访任务', time: '昨天 16:40', type: 'warning' },
+            { title: '患者赵*军已提交复诊记录（已按计划复诊）', time: '昨天 20:12', type: 'success' },
+            { title: '短信发送失败提醒：杨*英 158****9217（空号风险）', time: '昨天 09:00', type: 'danger' },
+            { title: '周*明复诊已超期 11 天，召回任务两次未接通', time: '2 天前', type: 'warning' }
         ]);
 
         // 首页趋势图联动逻辑
@@ -1008,6 +1181,138 @@ const app = createApp({
             });
         };
 
+        // ==================== PSP V1.1 扩展（A1–A8 + PV口径） ====================
+        const PSP_TODAY = window.PSP_TODAY;
+        const PSP_KPI = window.PSP_KPI;
+        const PSP_TASK_TYPES = ['项目说明与授权', '首触达建档', '周期治疗/复诊随访', '超期未治疗/未复诊召回', '退出/拒访管理', '异常症状/AE即时随访', '特殊情形/质量投诉处理', 'PV/事件补充随访', '复诊记录提交'];
+        const TASKS = reactive(window.PSP_TASKS);
+        const EVENTS = reactive(window.PSP_EVENTS);
+        const RECORDS = reactive(window.PSP_RECORDS);
+
+        // 演示角色切换
+        const currentRole = ref('seat');
+        const operatorName = computed(() => ({ seat: '许琳（随访坐席）', pm: '陈敏（项目经理）', admin: '超级管理员' })[currentRole.value]);
+        const operatorShort = computed(() => ({ seat: '许琳', pm: '陈敏', admin: '超级管理员' })[currentRole.value]);
+
+        // A3 随访任务筛选
+        const taskTypeFilter = ref('');
+        const taskStatusFilter = ref('');
+        const taskExecutorFilter = ref('');
+        const taskKeyword = ref('');
+        const filteredTasks = computed(() => TASKS.filter(t =>
+            (!taskTypeFilter.value || t.taskType === taskTypeFilter.value) &&
+            (!taskStatusFilter.value || t.status === taskStatusFilter.value) &&
+            (!taskExecutorFilter.value || (t.executor || '').includes(taskExecutorFilter.value)) &&
+            (!taskKeyword.value || t.patientId.includes(taskKeyword.value) || t.patientName.includes(taskKeyword.value) || t.taskId.includes(taskKeyword.value))
+        ));
+
+        // 首页工作台待办
+        const homeTodoTasks = computed(() => TASKS.filter(t => ['待执行', '即将到期', '已超期'].includes(t.status)).slice(0, 4));
+        const homeTodoEvents = computed(() => EVENTS.filter(e => ['待处理', '已转PV', '需补充'].includes(e.status)).slice(0, 4));
+        const homeOverduePatients = computed(() => window.PSP_PATIENTS.filter(p => p.nextVisit < PSP_TODAY || p.riskLevel !== 'green').slice(0, 4));
+
+        // A5 异常/AE 管理 · PV 工作台
+        const pvGroupFilter = ref('');
+        const pvStatusFilter = ref('');
+        const pvKeyword = ref('');
+        const pvFilteredEvents = computed(() => EVENTS.filter(e =>
+            (!pvGroupFilter.value || e.typeGroup === pvGroupFilter.value) &&
+            (!pvStatusFilter.value || e.status === pvStatusFilter.value) &&
+            (!pvKeyword.value || e.patientName.includes(pvKeyword.value) || e.id.includes(pvKeyword.value) || e.summary.includes(pvKeyword.value))
+        ));
+        const pvStats = computed(() => [
+            { label: '待处理', value: EVENTS.filter(e => e.status === '待处理').length, color: '#f56c6c', icon: 'fa-inbox' },
+            { label: '已转PV', value: EVENTS.filter(e => e.status === '已转PV').length, color: '#e6a23c', icon: 'fa-share-nodes' },
+            { label: '需补充', value: EVENTS.filter(e => e.status === '需补充').length, color: '#722ed1', icon: 'fa-circle-question' },
+            { label: '已上报', value: EVENTS.filter(e => e.status === '已上报').length, color: '#409eff', icon: 'fa-flag' },
+            { label: '快速/紧急', value: EVENTS.filter(e => e.risk === '快速/紧急' && e.status !== '已关闭').length, color: '#cf1322', icon: 'fa-bolt' }
+        ]);
+        const pvStatusType = (s) => ({ '待处理': 'warning', '已转PV': 'primary', '已上报': 'success', '需补充': 'danger', '已关闭': 'info' })[s] || 'info';
+
+        const pvDetail = ref({ four: {}, trail: [], quality: null });
+        const isPvDetailPage = computed(() => activePath.value === 'pv-detail');
+        const openPvDetail = (row) => { pvDetail.value = row; navigate('pv-detail', '事件 ' + row.id); };
+        const openPvDetailById = (id) => {
+            const e = EVENTS.find(x => x.id === id);
+            if (e) openPvDetail(e);
+        };
+        const pvRelatedRecords = computed(() => RECORDS.filter(r => r.eventId === pvDetail.value.id || (pvDetail.value.records || []).includes(r.id)));
+        const pvStateReached = (i) => {
+            const order = { '待处理': 0, '已转PV': 1, '已上报': 2, '需补充': 2, '已关闭': 3 };
+            return (order[pvDetail.value.status] || 0) >= i;
+        };
+
+        // PV 状态机操作
+        const pvActionVisible = ref(false);
+        const pvActionTarget = ref('');
+        const pvActionRemark = ref('');
+        const pvActionTitle = computed(() => 'PV 状态操作：' + pvActionTarget.value);
+        const PV_ACTION_LABEL = { '已转PV': '标记已转PV', '已上报': '标记已上报', '需补充': '标记需补充', '已关闭': '标记已关闭' };
+        const openPvAction = (target) => { pvActionTarget.value = target; pvActionRemark.value = ''; pvActionVisible.value = true; };
+        const confirmPvAction = () => {
+            if (!pvActionRemark.value.trim()) {
+                ElementPlus.ElMessage.error('请填写操作备注');
+                return;
+            }
+            const e = pvDetail.value;
+            const from = e.status;
+            const to = pvActionTarget.value;
+            const now = PSP_TODAY + ' ' + new Date().toTimeString().slice(0, 5);
+            e.trail.push({ time: now, operator: operatorName.value, action: PV_ACTION_LABEL[to], from, to, remark: pvActionRemark.value });
+            e.status = to;
+            if (to === '需补充') {
+                const patient = window.PSP_PATIENTS.find(p => p.patientId === e.patientId) || {};
+                const newTask = {
+                    id: Date.now(), status: '待执行', patientId: e.patientId, patientName: e.patientName,
+                    phone: patient.phone || '', planDate: PSP_TODAY, taskType: 'PV/事件补充随访',
+                    product: '拓益（特瑞普利单抗注射液）', indication: patient.indication || '',
+                    taskId: 'RW260509-00' + (40 + TASKS.length - 14),
+                    serviceSummary: '补充原事件 ' + e.id + ' 信息（' + e.type + '）',
+                    overdue: '', executor: '', execDate: '', createDate: now + ':00', relatedEvent: e.id
+                };
+                TASKS.unshift(newTask);
+                e.trail[e.trail.length - 1].remark += '；已自动生成补充随访任务 ' + newTask.taskId;
+                ElementPlus.ElMessage.success('已标记"需补充"，自动生成补充随访任务 ' + newTask.taskId + '（关联 ' + e.id + '）');
+            } else {
+                ElementPlus.ElMessage.success('已' + PV_ACTION_LABEL[to] + '，操作已留痕');
+            }
+            pvActionVisible.value = false;
+        };
+
+        // A1/A2 表单设计器
+        const pspModules = window.PSP_MODULES;
+        const designerModuleId = ref(7);
+        const designerModule = computed(() => pspModules.find(m => m.id === designerModuleId.value));
+        const designerQuestions = computed(() => window.PSP_QUESTIONS.filter(q => q.module === (designerModule.value || {}).name));
+        const moduleQuestionCount = (id) => {
+            const name = (pspModules.find(m => m.id === id) || {}).name;
+            return window.PSP_QUESTIONS.filter(q => q.module === name).length;
+        };
+
+        // A8 报表/KPI
+        const kpiRange = ref('week');
+        const kpiSeries = computed(() => PSP_KPI[kpiRange.value]);
+        const kpiDonutGradient = computed(() => {
+            const total = PSP_KPI.taskTypeDist.reduce((s, d) => s + d.value, 0);
+            let acc = 0;
+            const parts = PSP_KPI.taskTypeDist.map(d => {
+                const start = acc / total * 360;
+                acc += d.value;
+                return d.color + ' ' + start.toFixed(1) + 'deg ' + (acc / total * 360).toFixed(1) + 'deg';
+            });
+            return 'conic-gradient(' + parts.join(', ') + ')';
+        });
+
+        // 随访记录详情
+        const recordViewData = ref({});
+        const isRecordPage = computed(() => activePath.value === 'record-view');
+        const openRecordView = (r) => { recordViewData.value = r; navigate('record-view', '随访记录 ' + r.id); };
+
+        // A6 患者 360
+        const patientRecords = computed(() => RECORDS.filter(r => r.patientId === patientDetailData.value.patientId));
+        const patientTasks = computed(() => TASKS.filter(t => t.patientId === patientDetailData.value.patientId));
+        const patientEvents = computed(() => EVENTS.filter(e => e.patientId === patientDetailData.value.patientId));
+
         onMounted(() => {
             const hash = window.location.hash.slice(1) || 'home';
             handleMenuSelect(hash);
@@ -1036,6 +1341,17 @@ const app = createApp({
             homeTimeRange, currentTrendData,
             tableData, searchKeyword, handleAction,
 
+            currentRole, operatorName, operatorShort, PSP_TODAY, PSP_KPI, PSP_TASK_TYPES,
+            taskTypeFilter, taskStatusFilter, taskExecutorFilter, taskKeyword, filteredTasks,
+            homeTodoTasks, homeTodoEvents, homeOverduePatients,
+            pvGroupFilter, pvStatusFilter, pvKeyword, pvFilteredEvents, pvStats, pvStatusType,
+            pvDetail, isPvDetailPage, openPvDetail, openPvDetailById, pvRelatedRecords, pvStateReached,
+            pvActionVisible, pvActionTarget, pvActionRemark, pvActionTitle, openPvAction, confirmPvAction,
+            pspModules, designerModuleId, designerModule, designerQuestions, moduleQuestionCount,
+            kpiRange, kpiSeries, kpiDonutGradient,
+            recordViewData, isRecordPage, openRecordView,
+            patientRecords, patientTasks, patientEvents,
+
             exceptionVisible, exceptionTypeFilter, exceptionForm, exceptionFormRef,
             patientOptions, patientSearchLoading,
             openExceptionModal, remoteSearchPatient, selectExceptionPatient,
@@ -1044,10 +1360,13 @@ const app = createApp({
             isCommonPage, isArticlePage, isBaseDataPage, isExecutePage, isPatientDetailPage,
             patientDetailData, openPatientDetail,
             executeTaskData, executeActiveTab, executePersonalExpanded,
-            executeQuestionnaireModule, executeQuestionnaireQuestions, executeAnswers, needsOptionText, isQuestionVisible,
+            executeAnswers, executeContacts, newContact, addContactRecord,
+            executeModuleList, moduleQuestions, pspTypeLabel, isPspQuestionVisible, isModuleVisible,
+            executePatient, executePatientRecords, executePatientEvents, systemFieldValue, emergencyTriggered,
+            safetyConfirmed, summaryText, summaryDirty, escalationChoice, escalationNote,
+            onPspAnswerChange, regenerateSummary, submitPspFollowup,
             executeFormSections, executeActiveSection, executeProgress,
             scrollToSection, handleExecuteTask, handleFormScroll,
-            handleExecuteConfirm,
             dictGroups, activeDictGroup, dictItems,
             messageSearchKeyword, activeMessage, replyContent, chatScrollRef, filteredMessages, selectMessage, handleReplyMessage, isChatMode,
             scriptDrawerVisible, scriptSearchKeyword, scriptList, useScript,

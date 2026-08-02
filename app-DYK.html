@@ -106,10 +106,15 @@
                             <el-breadcrumb-item v-if="activePath !== 'home'">{{ currentTitle }}</el-breadcrumb-item>
                         </el-breadcrumb>
                     </div>
-                    <div class="header-right">
+                    <div class="header-right" style="display: flex; align-items: center; gap: 15px;">
+                        <el-select v-model="currentRole" size="small" style="width: 170px;" title="切换演示角色">
+                            <el-option label="随访坐席 · 许琳" value="seat"></el-option>
+                            <el-option label="项目经理 · 陈敏" value="pm"></el-option>
+                            <el-option label="项目管理员 · 超级管理员" value="admin"></el-option>
+                        </el-select>
                         <el-dropdown @command="handleUserCommand">
                             <span class="user-info-dropdown">
-                                超级管理员 <i class="fa-solid fa-caret-down" style="margin-left: 5px; font-size: 12px;"></i>
+                                {{ operatorName }} <i class="fa-solid fa-caret-down" style="margin-left: 5px; font-size: 12px;"></i>
                             </span>
                             <template #dropdown>
                                 <el-dropdown-menu>
@@ -142,15 +147,18 @@
                 <!-- Main Content Area -->
                 <el-main class="layout-main">
                     <div v-loading="loading" class="main-content-wrapper">
-                        <!-- 首页 Dashboard -->
+                        <!-- 首页工作台 -->
                         <div v-if="activePath === 'home'" class="page-home" style="background: transparent; padding: 0;">
-                            <!-- 顶部数据概览 -->
+                            <!-- 关键指标卡片 -->
                             <el-row :gutter="20" style="margin-bottom: 20px;">
                                 <el-col v-for="item in taskStats" :key="item.label" :span="4.8" style="flex: 0 0 20%; max-width: 20%;">
-                                    <el-card shadow="hover" :style="{ background: item.bg, border: 'none', boxShadow: item.shadow }" class="stat-card">
+                                    <el-card shadow="hover" :style="{ background: item.bg, border: 'none', boxShadow: item.shadow }" class="stat-card" @click="item.path && handleMenuSelect(item.path)">
                                         <div style="font-size: 13px; color: #606266; margin-bottom: 12px; font-weight: 500;">{{ item.label }}</div>
                                         <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                                            <span style="font-size: 28px; font-weight: 800;" :style="{color: item.color}">{{ item.value }}</span>
+                                            <div>
+                                                <span style="font-size: 28px; font-weight: 800;" :style="{color: item.color}">{{ item.value }}</span>
+                                                <div style="font-size: 12px; color: #909399; margin-top: 6px;">{{ item.sub }}</div>
+                                            </div>
                                             <div :style="{color: item.color}" style="font-size: 24px; opacity: 0.8;">
                                                 <i :class="['fa-solid', item.icon]"></i>
                                             </div>
@@ -159,9 +167,65 @@
                                 </el-col>
                             </el-row>
 
-                            <!-- 中间分栏布局 -->
+                            <!-- 今日待办 -->
+                            <el-row :gutter="20" style="margin-bottom: 20px;">
+                                <el-col :span="8">
+                                    <el-card shadow="never" style="height: 300px;">
+                                        <template #header>
+                                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                <span style="font-weight: 600;"><i class="fa-solid fa-clipboard-list" style="color: #409eff; margin-right: 8px;"></i>待执行随访任务</span>
+                                                <el-link type="primary" :underline="false" style="font-size: 13px;" @click="handleMenuSelect('followup-task')">全部任务</el-link>
+                                            </div>
+                                        </template>
+                                        <div v-for="t in homeTodoTasks" :key="t.taskId" style="padding: 10px 4px; border-bottom: 1px solid #f5f7fa; cursor: pointer;" @click="handleExecuteTask(t)">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                                <span style="font-size: 13px; font-weight: 600; color: #303133;">{{ t.patientName }} · {{ t.taskType }}</span>
+                                                <el-tag size="small" :type="t.status==='已超期'?'danger':(t.status==='即将到期'?'warning':'info')" effect="light">{{ t.status }}</el-tag>
+                                            </div>
+                                            <div style="font-size: 12px; color: #909399;">计划 {{ t.planDate }} · {{ t.serviceSummary }}</div>
+                                        </div>
+                                        <el-empty v-if="homeTodoTasks.length === 0" description="今日无待执行任务" :image-size="60"></el-empty>
+                                    </el-card>
+                                </el-col>
+                                <el-col :span="8">
+                                    <el-card shadow="never" style="height: 300px;">
+                                        <template #header>
+                                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                <span style="font-weight: 600;"><i class="fa-solid fa-triangle-exclamation" style="color: #f56c6c; margin-right: 8px;"></i>待处理异常 / AE</span>
+                                                <el-link type="primary" :underline="false" style="font-size: 13px;" @click="handleMenuSelect('exception-manage')">PV 工作台</el-link>
+                                            </div>
+                                        </template>
+                                        <div v-for="e in homeTodoEvents" :key="e.id" style="padding: 10px 4px; border-bottom: 1px solid #f5f7fa; cursor: pointer;" @click="openPvDetail(e)">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                                <span style="font-size: 13px; font-weight: 600; color: #303133;">{{ e.patientName }} · {{ e.type }}</span>
+                                                <el-tag size="small" :type="e.risk==='快速/紧急'?'danger':(e.risk==='关注跟进'?'warning':'info')" effect="light">{{ e.risk }}</el-tag>
+                                            </div>
+                                            <div style="font-size: 12px; color: #909399; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ e.id }} · {{ e.summary }}</div>
+                                        </div>
+                                        <el-empty v-if="homeTodoEvents.length === 0" description="无待处理异常" :image-size="60"></el-empty>
+                                    </el-card>
+                                </el-col>
+                                <el-col :span="8">
+                                    <el-card shadow="never" style="height: 300px;">
+                                        <template #header>
+                                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                <span style="font-weight: 600;"><i class="fa-solid fa-phone-slash" style="color: #e6a23c; margin-right: 8px;"></i>超时未联系患者</span>
+                                                <el-link type="primary" :underline="false" style="font-size: 13px;" @click="handleMenuSelect('patient-list')">患者列表</el-link>
+                                            </div>
+                                        </template>
+                                        <div v-for="p in homeOverduePatients" :key="p.patientId" style="padding: 10px 4px; border-bottom: 1px solid #f5f7fa; cursor: pointer;" @click="openPatientDetail(p)">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                                <span style="font-size: 13px; font-weight: 600; color: #303133;">{{ p.name }} · {{ p.indication }}</span>
+                                                <span><span class="risk-dot" :class="p.riskLevel"></span><span style="font-size: 12px; color: #909399;">{{ p.riskLevel==='red'?'高风险':(p.riskLevel==='yellow'?'中风险':'正常') }}</span></span>
+                                            </div>
+                                            <div style="font-size: 12px; color: #909399;">计划复诊 {{ p.nextVisit }} · {{ p.hospital }}</div>
+                                        </div>
+                                    </el-card>
+                                </el-col>
+                            </el-row>
+
+                            <!-- 下方分栏 -->
                             <el-row :gutter="20">
-                                <!-- 左侧：数据分析图表 & 最近任务 -->
                                 <el-col :span="18">
                                     <el-row :gutter="20" style="margin-bottom: 20px;">
                                         <el-col :span="16">
@@ -175,17 +239,15 @@
                                                         </el-radio-group>
                                                     </div>
                                                 </template>
-                                                <!-- 动态趋势图 -->
                                                 <div style="height: 280px; display: flex; align-items: flex-end; justify-content: space-around; padding: 20px 10px;">
-                                                    <div v-for="(item, i) in currentTrendData" :key="i" 
-                                                         style="width: 40px; background: linear-gradient(to top, #409eff, #a0cfff); border-radius: 4px 4px 0 0; position: relative; transition: all 0.5s ease;" 
+                                                    <div v-for="(item, i) in currentTrendData" :key="i"
+                                                         style="width: 40px; background: linear-gradient(to top, #409eff, #a0cfff); border-radius: 4px 4px 0 0; position: relative; transition: all 0.5s ease;"
                                                          :style="{ height: (homeTimeRange === 'week' ? item.value : (item.value/4)) + '%' }">
                                                         <div style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #409eff; font-weight: bold;">{{item.value}}</div>
                                                         <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #909399; white-space: nowrap;">{{item.label}}</div>
                                                     </div>
                                                 </div>
                                             </el-card>
-
                                         </el-col>
                                         <el-col :span="8">
                                             <el-card shadow="never" style="height: 380px;">
@@ -213,21 +275,23 @@
                                         <template #header>
                                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                                 <span style="font-weight: 600;"><i class="fa-solid fa-list-check" style="color: #e6a23c; margin-right: 8px;"></i>最近随访任务</span>
-                                                <el-link type="primary" :underline="false" style="font-size: 13px;" @click="activePath = 'followup-task'">查看全部</el-link>
+                                                <el-link type="primary" :underline="false" style="font-size: 13px;" @click="handleMenuSelect('followup-task')">查看全部</el-link>
                                             </div>
                                         </template>
                                         <el-table :data="recentTasks" style="width: 100%" size="small">
-                                            <el-table-column prop="patientName" label="患者" width="100"></el-table-column>
-                                            <el-table-column prop="status" label="状态" width="100">
+                                            <el-table-column prop="patientName" label="患者" width="90"></el-table-column>
+                                            <el-table-column prop="taskType" label="任务类型" width="150" show-overflow-tooltip></el-table-column>
+                                            <el-table-column prop="status" label="状态" width="90">
                                                 <template #default="scope">
                                                     <el-tag :type="scope.row.status==='待执行'?'warning':(scope.row.status==='已完成'?'success':'danger')" size="small">{{scope.row.status}}</el-tag>
                                                 </template>
                                             </el-table-column>
-                                            <el-table-column prop="planDate" label="计划时间" width="120"></el-table-column>
+                                            <el-table-column prop="planDate" label="计划时间" width="110"></el-table-column>
                                             <el-table-column prop="indication" label="适应症" show-overflow-tooltip></el-table-column>
                                             <el-table-column label="操作" width="80" align="center">
                                                 <template #default="scope">
-                                                    <el-button link type="primary" @click="handleAction('执行', scope.row)">执行</el-button>
+                                                    <el-button v-if="scope.row.status !== '已完成'" link type="primary" @click="handleAction('执行', scope.row)">执行</el-button>
+                                                    <span v-else style="color: #c0c4cc; font-size: 13px;">—</span>
                                                 </template>
                                             </el-table-column>
                                         </el-table>
@@ -291,32 +355,35 @@
                                     <template v-else-if="activePath === 'followup-task'">
                                         <div style="display: flex; flex-direction: column; gap: 15px; width: 100%;">
                                             <div style="display: flex; align-items: center; gap: 20px;">
-                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">产品</span><el-select placeholder="请选择产品" style="width: 180px"><el-option label="全部产品" value="all"></el-option></el-select></div>
-                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">适应症</span><el-select placeholder="请选择适应症" style="width: 180px"><el-option label="全部" value="all"></el-option></el-select></div>
-                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">任务状态</span>
-                                                    <el-select placeholder="已完成任务" style="width: 180px">
-                                                        <el-option label="今日任务" value="今日任务"></el-option>
-                                                        <el-option label="本月待执行任务" value="本月待执行任务"></el-option>
-                                                        <el-option label="本月即将到期任务" value="本月即将到期任务"></el-option>
-                                                        <el-option label="本月已超期任务" value="本月已超期任务"></el-option>
-                                                        <el-option label="已完成任务" value="已完成任务"></el-option>
-                                                        <el-option label="今日已完成任务" value="今日已完成任务"></el-option>
-                                                        <el-option label="执行失败任务" value="执行失败任务"></el-option>
-                                                        <el-option label="全部任务" value="全部任务"></el-option>
+                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">任务类型</span>
+                                                    <el-select v-model="taskTypeFilter" placeholder="全部类型" style="width: 220px" clearable>
+                                                        <el-option v-for="t in PSP_TASK_TYPES" :key="t" :label="t" :value="t"></el-option>
                                                     </el-select>
                                                 </div>
-                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">患者编号</span><el-input placeholder="搜索患者编号" style="width: 180px"></el-input></div>
-                                            </div>
-                                            <div style="display: flex; align-items: center; gap: 20px;">
-                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">计划执行日期</span><el-date-picker type="daterange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期" style="width: 250px"></el-date-picker></div>
-                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">执行人</span><el-select placeholder="请选择" style="width: 180px"><el-option label="全部" value="all"></el-option></el-select></div>
-                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">执行时间</span><el-date-picker type="daterange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期" style="width: 250px"></el-date-picker></div>
-                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">任务类型</span><el-select placeholder="请输入选择" style="width: 180px"><el-option label="全部" value="all"></el-option></el-select></div>
+                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">任务状态</span>
+                                                    <el-select v-model="taskStatusFilter" placeholder="全部状态" style="width: 160px" clearable>
+                                                        <el-option label="待执行" value="待执行"></el-option>
+                                                        <el-option label="即将到期" value="即将到期"></el-option>
+                                                        <el-option label="已超期" value="已超期"></el-option>
+                                                        <el-option label="已完成" value="已完成"></el-option>
+                                                        <el-option label="执行失败" value="执行失败"></el-option>
+                                                    </el-select>
+                                                </div>
+                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">执行人</span>
+                                                    <el-select v-model="taskExecutorFilter" placeholder="全部" style="width: 160px" clearable>
+                                                        <el-option label="许琳（随访坐席）" value="许琳"></el-option>
+                                                        <el-option label="王专员" value="王专员"></el-option>
+                                                        <el-option label="赵专员" value="赵专员"></el-option>
+                                                        <el-option label="患者本人" value="患者本人"></el-option>
+                                                    </el-select>
+                                                </div>
+                                                <div style="display: flex; align-items: center; font-size: 14px; color: #606266;"><span style="margin-right: 10px; font-weight: 500; white-space: nowrap;">患者编号</span><el-input v-model="taskKeyword" placeholder="搜索患者编号/姓名" style="width: 200px" clearable></el-input></div>
                                                 <div style="display: flex; align-items: center; margin-left: auto;">
                                                     <el-button type="primary">搜索</el-button>
-                                                    <el-button>重置</el-button>
+                                                    <el-button @click="taskTypeFilter='';taskStatusFilter='';taskExecutorFilter='';taskKeyword=''">重置</el-button>
                                                 </div>
                                             </div>
+                                            <div style="font-size: 12px; color: #909399;">共 {{ filteredTasks.length }} 条任务 · 任务由规则引擎按"下次复诊/治疗日期"每日扫描自动生成，事件类任务由表单提交触发</div>
                                         </div>
                                     </template>
                                     <template v-else-if="activePath === 'message-manage'">
@@ -326,22 +393,6 @@
                                         </div>
                                         <el-button type="primary">搜索</el-button>
                                         <el-button @click="messageSearchKeyword = ''">重置</el-button>
-                                    </template>
-                                    <template v-else-if="activePath === 'exception-manage'">
-                                        <div style="display: flex; align-items: center; font-size: 14px; color: #606266;">
-                                            <span style="margin-right: 10px; font-weight: 500;">患者姓名</span>
-                                            <el-input v-model="searchKeyword" placeholder="搜索患者姓名" style="width: 200px" clearable></el-input>
-                                        </div>
-                                        <div style="display: flex; align-items: center; font-size: 14px; color: #606266;">
-                                            <span style="margin-right: 10px; font-weight: 500; margin-left: 20px;">异常类型</span>
-                                            <el-select v-model="exceptionTypeFilter" placeholder="全部" style="width: 150px" clearable>
-                                                <el-option label="AE" value="AE"></el-option>
-                                                <el-option label="SAE" value="SAE"></el-option>
-                                                <el-option label="药物安全信息" value="药物安全信息"></el-option>
-                                            </el-select>
-                                        </div>
-                                        <el-button type="primary" style="margin-left: 20px;">搜索</el-button>
-                                        <el-button @click="searchKeyword = ''; exceptionTypeFilter = ''">重置</el-button>
                                     </template>
                                     <template v-else>
                                         <div style="display: flex; align-items: center; font-size: 14px; color: #606266;">
@@ -356,8 +407,7 @@
                                 <!-- 操作区域和表格 -->
                                 <div class="table-area" style="background: #fff; padding: 15px 20px; border-radius: 4px; border: 1px solid #ebeef5;">
                                     <div style="margin-bottom: 15px; display: flex; justify-content: flex-end; align-items: center;">
-                                        <el-button v-if="activePath === 'exception-manage'" type="danger" icon="Plus" @click="openExceptionModal">异常上报</el-button>
-                                        <el-button v-if="activePath !== 'patient-list' && activePath !== 'satisfaction-report' && activePath !== 'message-manage' && activePath !== 'exception-manage'" type="primary" @click="openAddModal(activePath)">新增</el-button>
+                                        <el-button v-if="activePath !== 'patient-list' && activePath !== 'satisfaction-report' && activePath !== 'message-manage'" type="primary" @click="openAddModal(activePath)">新增</el-button>
                                         <el-button v-if="activePath === 'followup-task'" type="primary" plain style="margin-left: 10px;">导出</el-button>
                                         <div style="margin-left: 15px; display: flex; gap: 15px; color: #606266; font-size: 16px; cursor: pointer;">
                                             <i class="fa-solid fa-arrows-rotate" title="刷新"></i>
@@ -366,7 +416,7 @@
                                         </div>
                                     </div>
 
-                                    <el-table :data="activePath === 'message-manage' ? filteredMessages : tableData" style="width: 100%" :header-cell-style="{background:'#f8f8f9', color:'#515a6e', fontWeight: 'bold'}" border>
+                                    <el-table :data="activePath === 'message-manage' ? filteredMessages : (activePath === 'followup-task' ? filteredTasks : tableData)" style="width: 100%" :header-cell-style="{background:'#f8f8f9', color:'#515a6e', fontWeight: 'bold'}" border>
                                         <el-table-column v-if="activePath === 'followup-task'" type="selection" width="55" align="center"></el-table-column>
                                         <el-table-column v-for="col in currentColumns" :key="col.key" :prop="col.key" :label="col.label" sortable>
                                             <template #default="scope">
@@ -424,14 +474,7 @@
                                                  <template v-if="activePath === 'patient-list'">
                                                      <el-button link type="primary" size="small" @click="openRiskDialog(scope.row)">修改状态</el-button>
                                                  </template>
-                                                 <!-- 异常管理：上报PV和解决 -->
-                                                 <template v-else-if="activePath === 'exception-manage'">
-                                                    <el-button link type="primary" size="small" @click="handleExceptionAction('详情', scope.row)">查看详情</el-button>
-                                                    <el-button v-if="scope.row.status === '待处理'" link type="primary" size="small" @click="handleExceptionAction('上报PV', scope.row)">上报PV</el-button>
-                                                    <el-button v-if="scope.row.status !== '已解决'" link type="success" size="small" @click="handleExceptionAction('解决', scope.row)">解决</el-button>
-                                                    <span v-if="scope.row.status === '已解决'" style="color: #c0c4cc; font-size: 13px; margin-left: 10px;">已完成</span>
-                                                </template>
-                                                <!-- 随访任务：仅待执行和即将到期显示执行按钮 -->
+                                                 <!-- 随访任务：仅待执行和即将到期显示执行按钮 -->
                                                 <template v-else-if="activePath === 'followup-task'">
                                                     <el-button v-if="scope.row.status === '待执行' || scope.row.status === '即将到期'" link type="primary" size="small" @click="handleAction('执行', scope.row)">执行</el-button>
                                                     <span v-else style="color: #c0c4cc; font-size: 13px;">—</span>
@@ -521,7 +564,377 @@
                             </div>
                         </div>
 
-                        <!-- 基础数据页面 (Vue 模板) -->
+                        <!-- 异常/AE 管理 · PV 工作台 -->
+                        <div v-else-if="activePath === 'exception-manage'" class="page-pv">
+                            <el-alert type="info" :closable="false" show-icon style="margin-bottom: 15px;">
+                                <template #title>
+                                    PV 口径：上报君实 PV 走<strong>线下邮件</strong>，系统不做、不模拟上报动作，仅记录"已转PV / 已上报 / 需补充 / 已关闭"状态并全程留痕（可抽检）。
+                                </template>
+                            </el-alert>
+                            <el-row :gutter="15" style="margin-bottom: 15px;">
+                                <el-col :span="4" v-for="c in pvStats" :key="c.label" style="flex: 0 0 20%; max-width: 20%;">
+                                    <el-card shadow="hover" style="border: none;" :body-style="{padding: '15px'}">
+                                        <div style="font-size: 12px; color: #909399; margin-bottom: 8px;">{{ c.label }}</div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <span style="font-size: 24px; font-weight: 800;" :style="{color: c.color}">{{ c.value }}</span>
+                                            <i :class="['fa-solid', c.icon]" :style="{color: c.color, fontSize: '20px', opacity: 0.7}"></i>
+                                        </div>
+                                    </el-card>
+                                </el-col>
+                            </el-row>
+                            <div class="search-area" style="background: #fff; padding: 15px 20px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #ebeef5; display: flex; align-items: center; gap: 20px;">
+                                <el-radio-group v-model="pvGroupFilter">
+                                    <el-radio-button label="">全部</el-radio-button>
+                                    <el-radio-button label="AE">不良事件AE</el-radio-button>
+                                    <el-radio-button label="特殊情形">特殊情形</el-radio-button>
+                                    <el-radio-button label="质量投诉">质量投诉</el-radio-button>
+                                </el-radio-group>
+                                <el-select v-model="pvStatusFilter" placeholder="全部状态" style="width: 140px" clearable>
+                                    <el-option label="待处理" value="待处理"></el-option>
+                                    <el-option label="已转PV" value="已转PV"></el-option>
+                                    <el-option label="已上报" value="已上报"></el-option>
+                                    <el-option label="需补充" value="需补充"></el-option>
+                                    <el-option label="已关闭" value="已关闭"></el-option>
+                                </el-select>
+                                <el-input v-model="pvKeyword" placeholder="搜索患者 / 事件编号 / 事件描述" style="width: 260px" clearable></el-input>
+                            </div>
+                            <div class="table-area" style="background: #fff; padding: 15px 20px; border-radius: 4px; border: 1px solid #ebeef5;">
+                                <el-table :data="pvFilteredEvents" style="width: 100%" :header-cell-style="{background:'#f8f8f9', color:'#515a6e', fontWeight: 'bold'}" border>
+                                    <el-table-column label="事件编号" width="130">
+                                        <template #default="scope">
+                                            <el-link type="primary" @click="openPvDetail(scope.row)" style="font-weight: 600;">{{ scope.row.id }}</el-link>
+                                        </template>
+                                    </el-table-column>
+                                    <el-table-column prop="patientName" label="患者" width="90"></el-table-column>
+                                    <el-table-column label="事件类型" width="170">
+                                        <template #default="scope">
+                                            <el-tag :type="scope.row.typeGroup==='AE'?'danger':(scope.row.typeGroup==='质量投诉'?'warning':'info')" effect="light" size="small">{{ scope.row.type }}</el-tag>
+                                            <el-tag v-if="scope.row.quality" size="small" effect="plain" :type="scope.row.quality.withAE ? 'danger' : 'warning'" style="margin-left: 5px;">{{ scope.row.quality.withAE ? '质量+PV' : '质量部门优先' }}</el-tag>
+                                        </template>
+                                    </el-table-column>
+                                    <el-table-column prop="summary" label="事件描述" min-width="240" show-overflow-tooltip></el-table-column>
+                                    <el-table-column prop="occurDate" label="发生时间" width="105"></el-table-column>
+                                    <el-table-column label="风险分层" width="110">
+                                        <template #default="scope">
+                                            <el-tag size="small" :type="scope.row.risk==='快速/紧急'?'danger':(scope.row.risk==='关注跟进'?'warning':'success')" effect="plain">{{ scope.row.risk }}</el-tag>
+                                        </template>
+                                    </el-table-column>
+                                    <el-table-column label="当前状态" width="95">
+                                        <template #default="scope">
+                                            <el-tag size="small" :type="pvStatusType(scope.row.status)">{{ scope.row.status }}</el-tag>
+                                        </template>
+                                    </el-table-column>
+                                    <el-table-column prop="source" label="来源" width="95"></el-table-column>
+                                    <el-table-column label="操作" width="110" fixed="right" align="center">
+                                        <template #default="scope">
+                                            <el-button link type="primary" size="small" @click="openPvDetail(scope.row)">处理/详情</el-button>
+                                        </template>
+                                    </el-table-column>
+                                </el-table>
+                            </div>
+                        </div>
+
+                        <!-- 异常/AE 事件详情 · PV 状态机 -->
+                        <div v-else-if="isPvDetailPage" class="page-pv-detail">
+                            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 12px;">
+                                <el-button link icon="ArrowLeft" @click="handleMenuSelect('exception-manage')">返回列表</el-button>
+                                <span style="font-size: 18px; font-weight: 700;">{{ pvDetail.id }}</span>
+                                <el-tag :type="pvDetail.typeGroup==='AE'?'danger':(pvDetail.typeGroup==='质量投诉'?'warning':'info')" effect="light">{{ pvDetail.type }}</el-tag>
+                                <el-tag size="small" :type="pvDetail.risk==='快速/紧急'?'danger':(pvDetail.risk==='关注跟进'?'warning':'success')" effect="plain">{{ pvDetail.risk }}</el-tag>
+                                <el-tag :type="pvStatusType(pvDetail.status)">{{ pvDetail.status }}</el-tag>
+                                <el-tag v-if="pvDetail.quality" effect="dark" :type="pvDetail.quality.withAE ? 'danger' : 'warning'">{{ pvDetail.quality.withAE ? '质量+PV（伴AE，PV必复核）' : '质量部门优先' }}</el-tag>
+                            </div>
+                            <el-row :gutter="15">
+                                <el-col :span="16">
+                                    <!-- 四要素 -->
+                                    <el-card shadow="never" style="margin-bottom: 15px;">
+                                        <template #header><span style="font-weight: 600;">事件四要素</span><span style="font-size: 12px; color: #909399; margin-left: 10px;">四要素不全不等于不记录，先按项目内路径转交，再由 PV 判断是否补充</span></template>
+                                        <el-descriptions :column="1" border>
+                                            <el-descriptions-item label="Patient｜患者">{{ pvDetail.four.patient }}</el-descriptions-item>
+                                            <el-descriptions-item label="Reporter｜报告者">{{ pvDetail.four.reporter }}</el-descriptions-item>
+                                            <el-descriptions-item label="Event｜事件">{{ pvDetail.four.event }}</el-descriptions-item>
+                                            <el-descriptions-item label="Product｜产品">{{ pvDetail.four.product }}</el-descriptions-item>
+                                        </el-descriptions>
+                                        <div style="margin-top: 12px; font-size: 13px; color: #606266; background: #f8f9fb; padding: 10px 12px; border-radius: 4px;">
+                                            <i class="fa-solid fa-layer-group" style="color: #e6a23c; margin-right: 6px;"></i>{{ pvDetail.ctcae }}　·　来源：{{ pvDetail.source }}<span v-if="pvDetail.sourceTask">（{{ pvDetail.sourceTask }}）</span>　·　获知时间：{{ pvDetail.reportDate }}
+                                        </div>
+                                    </el-card>
+                                    <!-- 质量投诉信息 -->
+                                    <el-card v-if="pvDetail.quality" shadow="never" style="margin-bottom: 15px;">
+                                        <template #header><span style="font-weight: 600;">质量投诉信息</span><span style="font-size: 12px; color: #909399; margin-left: 10px;">不判断药品是否合格，不接收药品实物</span></template>
+                                        <el-row :gutter="20" style="font-size: 13px;">
+                                            <el-col :span="8" style="margin-bottom: 14px;"><div style="color:#909399;margin-bottom:5px;">质量问题类型</div><div style="font-weight: 600;">{{ pvDetail.quality.problemTypes.join('、') }}</div></el-col>
+                                            <el-col :span="8" style="margin-bottom: 14px;"><div style="color:#909399;margin-bottom:5px;">产品批号</div><div style="font-weight: 600;">{{ pvDetail.quality.batchNo }}</div></el-col>
+                                            <el-col :span="8" style="margin-bottom: 14px;"><div style="color:#909399;margin-bottom:5px;">有效期至</div><div style="font-weight: 600;">{{ pvDetail.quality.expiry }}</div></el-col>
+                                            <el-col :span="8" style="margin-bottom: 14px;"><div style="color:#909399;margin-bottom:5px;">药品是否已使用</div><div style="font-weight: 600;">{{ pvDetail.quality.used }}</div></el-col>
+                                            <el-col :span="8" style="margin-bottom: 14px;"><div style="color:#909399;margin-bottom:5px;">是否伴随不适/AE</div>
+                                                <el-tag size="small" :type="pvDetail.quality.withAE ? 'danger' : 'success'" effect="light">{{ pvDetail.quality.withAE ? '伴AE → 质量+PV 同步' : '不伴AE → 质量部门优先' }}</el-tag>
+                                            </el-col>
+                                            <el-col :span="8" style="margin-bottom: 14px;"><div style="color:#909399;margin-bottom:5px;">发现时间/地点</div><div style="font-weight: 600;">{{ pvDetail.quality.foundAt }}</div></el-col>
+                                        </el-row>
+                                        <div style="border-top: 1px dashed #ebeef5; padding-top: 14px;">
+                                            <div style="color:#909399; font-size: 13px; margin-bottom: 8px;">照片/凭证</div>
+                                            <div style="display: flex; gap: 10px;">
+                                                <div v-for="(ev, i) in pvDetail.quality.evidences" :key="i" style="width: 120px; height: 74px; border: 1px solid #ebeef5; border-radius: 6px; background: #fafafa; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #909399; font-size: 12px; text-align: center; padding: 4px;">
+                                                    <i class="fa-solid fa-image" style="font-size: 18px; margin-bottom: 5px;"></i>{{ ev }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </el-card>
+                                    <!-- 关联随访记录 -->
+                                    <el-card shadow="never">
+                                        <template #header><span style="font-weight: 600;">关联随访记录</span></template>
+                                        <div v-if="pvRelatedRecords.length > 0">
+                                            <div v-for="r in pvRelatedRecords" :key="r.id" style="border: 1px solid #ebeef5; border-radius: 6px; padding: 12px 14px; margin-bottom: 10px; cursor: pointer;" @click="openRecordView(r)">
+                                                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                                    <span style="font-weight: 600; color: #409eff;">{{ r.id }} · {{ r.taskType }}</span>
+                                                    <span style="font-size: 12px; color: #909399;">{{ r.date }} · {{ r.executor }}</span>
+                                                </div>
+                                                <div style="font-size: 13px; color: #606266; line-height: 1.7;">{{ r.summary }}</div>
+                                            </div>
+                                        </div>
+                                        <el-empty v-else description="暂无关联随访记录" :image-size="60"></el-empty>
+                                    </el-card>
+                                </el-col>
+                                <el-col :span="8">
+                                    <!-- PV 状态机操作 -->
+                                    <el-card shadow="never" style="margin-bottom: 15px;">
+                                        <template #header><span style="font-weight: 600;">PV 状态操作</span></template>
+                                        <div style="font-size: 13px; color: #606266; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                            <template v-for="(s, i) in ['待处理','已转PV','已上报/需补充','已关闭']" :key="s">
+                                                <span :style="{ color: pvStateReached(i) ? '#409eff' : '#c0c4cc', fontWeight: pvStateReached(i) ? '600' : 'normal' }">{{ s }}</span>
+                                                <i v-if="i < 3" class="fa-solid fa-angle-right" style="color: #dcdfe6; font-size: 11px;"></i>
+                                            </template>
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                                            <el-button v-if="pvDetail.status === '待处理'" type="primary" @click="openPvAction('已转PV')">标记已转PV</el-button>
+                                            <template v-if="pvDetail.status === '已转PV'">
+                                                <el-button type="success" @click="openPvAction('已上报')">标记已上报</el-button>
+                                                <el-button type="warning" plain @click="openPvAction('需补充')">需补充</el-button>
+                                            </template>
+                                            <el-button v-if="pvDetail.status === '已上报' || pvDetail.status === '需补充'" type="info" plain @click="openPvAction('已关闭')">标记已关闭</el-button>
+                                            <div v-if="pvDetail.status === '已关闭'" style="text-align: center; color: #909399; font-size: 13px; padding: 10px 0;"><i class="fa-solid fa-circle-check" style="color: #67c23a; margin-right: 6px;"></i>事件已关闭归档</div>
+                                        </div>
+                                        <div style="margin-top: 12px; font-size: 12px; color: #909399; line-height: 1.7; background: #f8f9fb; border-radius: 4px; padding: 8px 10px;">
+                                            实际上报通过线下邮件完成，系统仅记录状态；每次操作须填写备注并留痕。"需补充"将自动生成 PV/事件补充随访任务（关联原事件编号）。
+                                        </div>
+                                    </el-card>
+                                    <!-- 操作留痕 -->
+                                    <el-card shadow="never">
+                                        <template #header><span style="font-weight: 600;">操作留痕</span><el-tag size="small" effect="plain" style="margin-left: 8px;">可抽检</el-tag></template>
+                                        <el-timeline style="padding-left: 5px;">
+                                            <el-timeline-item v-for="(t, i) in pvDetail.trail" :key="i" :timestamp="t.time + ' · ' + t.operator" :type="i === pvDetail.trail.length - 1 ? 'primary' : ''" :hollow="i !== pvDetail.trail.length - 1">
+                                                <div style="font-size: 13px; font-weight: 600; color: #303133;">
+                                                    {{ t.action }}
+                                                    <el-tag v-if="t.to" size="small" effect="plain" :type="pvStatusType(t.to)" style="margin-left: 6px;">{{ t.from ? t.from + ' → ' : '' }}{{ t.to }}</el-tag>
+                                                </div>
+                                                <div style="font-size: 12px; color: #909399; margin-top: 4px; line-height: 1.6;">{{ t.remark }}</div>
+                                            </el-timeline-item>
+                                        </el-timeline>
+                                    </el-card>
+                                </el-col>
+                            </el-row>
+                        </div>
+
+                        <!-- 表单设计器 -->
+                        <div v-else-if="activePath === 'form-designer'" class="page-form-designer" style="display: flex; gap: 15px; height: calc(100vh - 160px);">
+                            <!-- 左侧模块树 -->
+                            <div style="width: 280px; min-width: 280px; background: #fff; border: 1px solid #ebeef5; border-radius: 4px; display: flex; flex-direction: column; overflow: hidden;">
+                                <div style="padding: 14px 16px; border-bottom: 1px solid #f0f2f5; font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
+                                    <span>问卷模块（14）</span>
+                                    <el-tag size="small" effect="plain">V0.4 · 131题</el-tag>
+                                </div>
+                                <div style="flex: 1; overflow-y: auto;">
+                                    <div v-for="m in pspModules" :key="m.id" class="dict-group-item" :class="{ active: designerModuleId === m.id }" @click="designerModuleId = m.id" style="padding: 11px 16px; cursor: pointer; border-bottom: 1px solid #f5f7fa;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <span style="font-size: 13px;" :style="{ fontWeight: designerModuleId === m.id ? 600 : 400 }">{{ m.id }}. {{ m.name }}</span>
+                                            <el-tag v-if="m.everyTime" size="small" type="success" effect="plain" style="transform: scale(0.85);">每次</el-tag>
+                                            <el-tag v-else-if="m.name.includes('条件') || [8,9].includes(m.id)" size="small" type="warning" effect="plain" style="transform: scale(0.85);">条件触发</el-tag>
+                                        </div>
+                                        <div style="font-size: 11px; color: #a0a4ab; margin-top: 3px;">{{ moduleQuestionCount(m.id) }} 题 · {{ m.freq }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 右侧问题列表 -->
+                            <div style="flex: 1; overflow-y: auto; padding-right: 4px;">
+                                <div style="background: #fff; border: 1px solid #ebeef5; border-radius: 4px; padding: 14px 18px; margin-bottom: 12px;">
+                                    <div style="font-size: 16px; font-weight: 700;">{{ designerModule?.id }}. {{ designerModule?.name }}</div>
+                                    <div style="font-size: 12px; color: #909399; margin-top: 6px;">{{ designerModule?.desc }}　·　适用：{{ designerModule?.freq }}</div>
+                                    <div style="margin-top: 10px; display: flex; gap: 14px; font-size: 12px; color: #606266;">
+                                        <span><el-tag size="small" type="primary" effect="plain" style="transform: scale(0.85);">触发问题→</el-tag> 选项选中后展开关联问题</span>
+                                        <span><el-tag size="small" type="warning" effect="plain" style="transform: scale(0.85);">附加填空</el-tag> 选中后补充文字</span>
+                                        <span><el-tag size="small" type="success" effect="plain" style="transform: scale(0.85);">加入小结</el-tag> 答案自动汇总进随访小结</span>
+                                    </div>
+                                </div>
+                                <div v-for="q in designerQuestions" :key="q.no" style="background: #fff; border: 1px solid #ebeef5; border-radius: 6px; padding: 14px 16px; margin-bottom: 12px;">
+                                    <div style="display: flex; align-items: flex-start; gap: 8px;">
+                                        <el-tag size="small" effect="dark" type="primary" style="flex-shrink: 0;">Q{{ q.no }}</el-tag>
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 14px; font-weight: 600; color: #303133; line-height: 1.6;">
+                                                {{ q.desc || q.content }}
+                                                <el-tag size="small" effect="plain" style="margin-left: 6px;">{{ pspTypeLabel(q.type) }}</el-tag>
+                                                <el-tag v-if="q.required === 'required'" size="small" type="danger" effect="plain" style="margin-left: 4px;">必答</el-tag>
+                                                <el-tag v-else-if="q.required === 'cond'" size="small" type="warning" effect="plain" style="margin-left: 4px;">条件必答</el-tag>
+                                                <el-tag v-if="q.trigger" size="small" type="info" effect="plain" style="margin-left: 4px;">由 Q{{ q.trigger.q }} 触发</el-tag>
+                                            </div>
+                                            <div v-if="q.script" style="margin-top: 8px; font-size: 12px; color: #8a6d3b; background: #fffbf0; border: 1px solid #f5e6c4; border-radius: 4px; padding: 6px 10px;">
+                                                <i class="fa-solid fa-comment-dots" style="margin-right: 5px;"></i>话术：{{ q.script }}
+                                            </div>
+                                            <div v-if="q.options.length > 0" style="margin-top: 10px; display: flex; flex-direction: column; gap: 6px;">
+                                                <div v-for="opt in q.options" :key="opt.sort" style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #606266; padding: 5px 10px; background: #fafafa; border-radius: 4px;">
+                                                    <i :class="q.type === 'checkbox' ? 'fa-regular fa-square' : 'fa-regular fa-circle'" style="color: #c0c4cc;"></i>
+                                                    <span>{{ opt.text }}</span>
+                                                    <el-tag v-if="opt.default" size="small" type="primary" effect="dark" style="transform: scale(0.85);">默认选中·须主动确认</el-tag>
+                                                    <el-tag v-if="opt.triggers" size="small" type="primary" effect="plain" style="transform: scale(0.85);">触发问题→{{ opt.triggers.map(n => 'Q' + n).join('/') }}</el-tag>
+                                                    <el-tag v-if="opt.fill" size="small" type="warning" effect="plain" style="transform: scale(0.85);">附加填空</el-tag>
+                                                    <el-tag v-if="opt.inSummary" size="small" type="success" effect="plain" style="transform: scale(0.85);">加入小结</el-tag>
+                                                </div>
+                                            </div>
+                                            <div v-if="q.jump" style="margin-top: 8px; font-size: 12px; color: #909399;">
+                                                <i class="fa-solid fa-code-branch" style="margin-right: 5px;"></i>跳转说明：{{ q.jump }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 报表/KPI -->
+                        <div v-else-if="activePath === 'kpi-report'" class="page-kpi">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <span style="font-size: 15px; font-weight: 600;">项目 KPI 看板 <span style="font-size: 12px; color: #909399; font-weight: 400;">（口径对齐《KPI及评估口径表》，演示数据截至 {{ PSP_TODAY }}）</span></span>
+                                <el-radio-group v-model="kpiRange" size="small">
+                                    <el-radio-button label="week">周报视图</el-radio-button>
+                                    <el-radio-button label="month">月报视图</el-radio-button>
+                                </el-radio-group>
+                            </div>
+                            <el-row :gutter="15" style="margin-bottom: 15px;">
+                                <el-col :span="4" v-for="c in PSP_KPI.cards" :key="c.label">
+                                    <el-card shadow="hover" style="border: none;" :body-style="{padding: '14px'}">
+                                        <div style="font-size: 12px; color: #909399; margin-bottom: 8px;"><i :class="['fa-solid', c.icon]" :style="{color: c.color, marginRight: '5px'}"></i>{{ c.label }}</div>
+                                        <div style="font-size: 24px; font-weight: 800;" :style="{color: c.color}">{{ c.value }}<span style="font-size: 12px; font-weight: 400; color: #909399; margin-left: 3px;">{{ c.unit }}</span></div>
+                                        <div style="font-size: 11px; color: #909399; margin-top: 5px;">{{ c.change }}</div>
+                                    </el-card>
+                                </el-col>
+                            </el-row>
+                            <el-row :gutter="15">
+                                <el-col :span="8">
+                                    <el-card shadow="never" style="height: 320px;">
+                                        <template #header><span style="font-weight: 600; font-size: 14px;">触达率趋势（%）</span></template>
+                                        <div style="height: 220px; display: flex; align-items: flex-end; justify-content: space-around; padding: 10px 5px 0;">
+                                            <div v-for="(v, i) in kpiSeries.touchRate" :key="i" style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                                                <span style="font-size: 12px; color: #409eff; font-weight: 700;">{{ v }}</span>
+                                                <div style="width: 26px; border-radius: 4px 4px 0 0; background: linear-gradient(to top, #409eff, #a0cfff);" :style="{ height: (v - 60) * 4 + 'px' }"></div>
+                                                <span style="font-size: 11px; color: #909399;">{{ kpiSeries.labels[i] }}</span>
+                                            </div>
+                                        </div>
+                                    </el-card>
+                                </el-col>
+                                <el-col :span="8">
+                                    <el-card shadow="never" style="height: 320px;">
+                                        <template #header><span style="font-weight: 600; font-size: 14px;">随访完成数 / 超期未复诊数</span></template>
+                                        <div style="height: 220px; display: flex; align-items: flex-end; justify-content: space-around; padding: 10px 5px 0;">
+                                            <div v-for="(v, i) in kpiSeries.doneCount" :key="i" style="display: flex; align-items: flex-end; gap: 6px;">
+                                                <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                                                    <span style="font-size: 12px; color: #67c23a; font-weight: 700;">{{ v }}</span>
+                                                    <div style="width: 20px; border-radius: 4px 4px 0 0; background: linear-gradient(to top, #67c23a, #b3e19d);" :style="{ height: Math.max(v * 3, 6) + 'px' }"></div>
+                                                </div>
+                                                <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                                                    <span style="font-size: 12px; color: #f56c6c; font-weight: 700;">{{ kpiSeries.overdueCount[i] }}</span>
+                                                    <div style="width: 20px; border-radius: 4px 4px 0 0; background: linear-gradient(to top, #f56c6c, #fab6b6);" :style="{ height: Math.max(kpiSeries.overdueCount[i] * 12, 6) + 'px' }"></div>
+                                                </div>
+                                                <span style="font-size: 11px; color: #909399; align-self: flex-end;">{{ kpiSeries.labels[i] }}</span>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; gap: 16px; justify-content: center; font-size: 12px; color: #909399;">
+                                            <span><i class="fa-solid fa-square" style="color: #67c23a; margin-right: 4px;"></i>随访完成</span>
+                                            <span><i class="fa-solid fa-square" style="color: #f56c6c; margin-right: 4px;"></i>超期未复诊</span>
+                                        </div>
+                                    </el-card>
+                                </el-col>
+                                <el-col :span="8">
+                                    <el-card shadow="never" style="height: 320px;">
+                                        <template #header><span style="font-weight: 600; font-size: 14px;">任务类型分布（本月）</span></template>
+                                        <div style="display: flex; align-items: center; gap: 20px; padding-top: 10px;">
+                                            <div :style="{ background: kpiDonutGradient }" style="width: 150px; height: 150px; border-radius: 50%; flex-shrink: 0; position: relative;">
+                                                <div style="position: absolute; inset: 34px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                                                    <span style="font-size: 20px; font-weight: 800; color: #303133;">243</span>
+                                                    <span style="font-size: 11px; color: #909399;">任务总数</span>
+                                                </div>
+                                            </div>
+                                            <div style="flex: 1; display: flex; flex-direction: column; gap: 7px; font-size: 12px;">
+                                                <div v-for="d in PSP_KPI.taskTypeDist" :key="d.label" style="display: flex; align-items: center; gap: 6px; color: #606266;">
+                                                    <span :style="{ background: d.color }" style="width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0;"></span>
+                                                    <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ d.label }}</span>
+                                                    <span style="font-weight: 600;">{{ d.value }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </el-card>
+                                </el-col>
+                            </el-row>
+                            <el-row :gutter="15" style="margin-top: 15px;">
+                                <el-col :span="24">
+                                    <el-card shadow="never">
+                                        <template #header><span style="font-weight: 600; font-size: 14px;">AE 处理时效（建案 → 标记已转PV，小时）</span></template>
+                                        <div style="display: flex; flex-direction: column; gap: 12px; padding: 5px 10px;">
+                                            <div v-for="a in PSP_KPI.aeTimeliness" :key="a.label" style="display: flex; align-items: center; gap: 12px; font-size: 13px;">
+                                                <span style="width: 110px; color: #409eff; font-weight: 600; cursor: pointer;" @click="openPvDetailById(a.label)">{{ a.label }}</span>
+                                                <div style="flex: 1; background: #f0f2f5; border-radius: 4px; height: 18px; position: relative;">
+                                                    <div :style="{ width: Math.min(a.hours / 24 * 100, 100) + '%', background: a.hours <= 4 ? '#67c23a' : (a.hours <= 12 ? '#e6a23c' : '#f56c6c') }" style="height: 100%; border-radius: 4px;"></div>
+                                                </div>
+                                                <span style="width: 60px; text-align: right; font-weight: 700;" :style="{ color: a.hours <= 4 ? '#67c23a' : (a.hours <= 12 ? '#e6a23c' : '#f56c6c') }">{{ a.hours }}h</span>
+                                                <el-tag size="small" effect="plain" style="width: 110px; text-align: center;">{{ a.level }}</el-tag>
+                                            </div>
+                                        </div>
+                                    </el-card>
+                                </el-col>
+                            </el-row>
+                        </div>
+
+                        <!-- 随访记录详情 -->
+                        <div v-else-if="isRecordPage" class="page-record">
+                            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 12px;">
+                                <el-button link icon="ArrowLeft" @click="handleTabRemove(activePath)">返回</el-button>
+                                <span style="font-size: 18px; font-weight: 700;">随访记录 {{ recordViewData.id }}</span>
+                                <el-tag effect="light" type="primary">{{ recordViewData.taskType }}</el-tag>
+                                <el-tag v-if="recordViewData.eventId" effect="light" type="danger" style="cursor: pointer;" @click="openPvDetailById(recordViewData.eventId)">关联事件 {{ recordViewData.eventId }}</el-tag>
+                            </div>
+                            <el-row :gutter="15">
+                                <el-col :span="16">
+                                    <el-card shadow="never" style="margin-bottom: 15px;">
+                                        <template #header><span style="font-weight: 600;">随访信息</span></template>
+                                        <el-descriptions :column="3" border size="small">
+                                            <el-descriptions-item label="患者">{{ recordViewData.patientName }}（{{ recordViewData.patientId }}）</el-descriptions-item>
+                                            <el-descriptions-item label="随访时间">{{ recordViewData.date }}</el-descriptions-item>
+                                            <el-descriptions-item label="执行人">{{ recordViewData.executor }}</el-descriptions-item>
+                                            <el-descriptions-item label="关联任务" :span="3">{{ recordViewData.taskId }}</el-descriptions-item>
+                                        </el-descriptions>
+                                    </el-card>
+                                    <el-card v-if="recordViewData.sections" shadow="never">
+                                        <template #header><span style="font-weight: 600;">问卷作答明细</span></template>
+                                        <div v-for="sec in recordViewData.sections" :key="sec.module" style="margin-bottom: 18px;">
+                                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 10px; padding-left: 10px; border-left: 3px solid #409eff;">{{ sec.module }}</div>
+                                            <div v-for="(qa, i) in sec.qa" :key="i" style="display: flex; gap: 10px; font-size: 13px; padding: 7px 0 7px 14px; border-bottom: 1px dashed #f0f2f5;">
+                                                <span style="color: #909399; flex: 1;">{{ qa.q }}</span>
+                                                <span style="color: #303133; font-weight: 600; flex: 1; text-align: right;">{{ qa.a }}</span>
+                                            </div>
+                                        </div>
+                                    </el-card>
+                                </el-col>
+                                <el-col :span="8">
+                                    <el-card shadow="never" style="margin-bottom: 15px;">
+                                        <template #header><span style="font-weight: 600;">随访小结</span></template>
+                                        <div style="font-size: 13px; color: #606266; line-height: 1.9; white-space: pre-wrap;">{{ recordViewData.summary }}</div>
+                                    </el-card>
+                                    <el-card v-if="recordViewData.escalation" shadow="never">
+                                        <template #header><span style="font-weight: 600;">升级 / 转交</span></template>
+                                        <div style="font-size: 13px; color: #606266; line-height: 1.9;">{{ recordViewData.escalation }}</div>
+                                    </el-card>
+                                </el-col>
+                            </el-row>
+                        </div>
+
                         <div v-else-if="isBaseDataPage" class="page-base-data" style="display: flex; gap: 20px; height: 100%;">
                             <!-- 左侧字典分类 -->
                             <div class="dict-sidebar" style="width: 200px; background: #fff; border-radius: 4px; border: 1px solid #dcdfe6; overflow: hidden; display: flex; flex-direction: column;">
@@ -567,157 +980,189 @@
                             </div>
                         </div>
 
-                        <!-- 执行随访页面 -->
+                        <!-- 集中随访执行页面（PSP V0.4 问卷引擎） -->
                         <div v-else-if="isExecutePage" class="page-execute" style="height: calc(100vh - 160px); display: flex; flex-direction: column;">
-                            <!-- 主体：左右分栏 -->
-
                             <div style="flex: 1; display: flex; gap: 0; overflow: hidden;">
-                                <!-- 左侧面板 -->
-                                <div style="width: 360px; min-width: 360px; border: 1px solid #ebeef5; border-radius: 6px; background: #fff; display: flex; flex-direction: column; overflow-y: auto; margin-right: 15px;">
-                                    <div style="padding: 20px; border-bottom: 1px solid #f0f2f5;">
-                                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
-                                            <span style="font-size: 16px; font-weight: 600;">君实随访</span>
-                                            <el-tag :style="{'background-color': executeTaskData.status==='待执行'?'#e1f3f0':'#fff7e6','border-color': executeTaskData.status==='待执行'?'#e1f3f0':'#fff7e6','color': executeTaskData.status==='待执行'?'#1ab195':'#fa8c16','padding':'0 10px','border-radius':'4px'}" size="small">{{ executeTaskData.status }}</el-tag>
+                                <!-- 左侧面板：任务 + 患者 + 联系记录 -->
+                                <div style="width: 350px; min-width: 350px; border: 1px solid #ebeef5; border-radius: 6px; background: #fff; display: flex; flex-direction: column; overflow-y: auto; margin-right: 15px;">
+                                    <div style="padding: 18px; border-bottom: 1px solid #f0f2f5;">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                            <span style="font-size: 15px; font-weight: 700;">{{ executeTaskData.taskType || '集中随访' }}</span>
+                                            <el-tag size="small" effect="light" :type="executeTaskData.status==='已超期'?'danger':(executeTaskData.status==='即将到期'?'warning':'info')">{{ executeTaskData.status }}</el-tag>
                                         </div>
-                                        <div style="font-size: 13px; color: #909399; line-height: 2;">
-                                            <div><span style="color:#606266;">通用名：</span>{{ executeTaskData.product }}</div>
-                                            <div><span style="color:#606266;">计划执行时间：</span>{{ executeTaskData.planDate }}</div>
+                                        <div style="font-size: 12px; color: #909399; line-height: 2;">
+                                            <div><span style="color:#606266;">任务编号：</span>{{ executeTaskData.taskId }}</div>
+                                            <div><span style="color:#606266;">计划执行：</span>{{ executeTaskData.planDate }}</div>
                                             <div><span style="color:#606266;">任务摘要：</span>{{ executeTaskData.serviceSummary }}</div>
+                                            <div v-if="executeTaskData.relatedEvent"><span style="color:#606266;">关联事件：</span><el-link type="primary" style="font-size: 12px;" @click="openPvDetailById(executeTaskData.relatedEvent)">{{ executeTaskData.relatedEvent }}</el-link></div>
                                         </div>
                                     </div>
-                                    <div style="padding: 20px; border-bottom: 1px solid #f0f2f5; flex: 1;">
-                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-                                            <div style="display: flex; align-items: center; gap: 10px;">
-                                                <span style="font-size: 15px; font-weight: 600;">{{ executeTaskData.patientName }}</span>
-                                                <span style="font-size: 13px; color: #909399;">{{ executeTaskData.indication }}</span>
+                                    <!-- 患者信息卡（脱敏） -->
+                                    <div style="padding: 18px; border-bottom: 1px solid #f0f2f5;">
+                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="font-size: 15px; font-weight: 700;">{{ executePatient.name }}</span>
+                                                <el-tag size="small" round effect="plain" type="info">{{ executePatient.gender }} · {{ executePatient.age }}岁</el-tag>
                                             </div>
-                                            <el-link type="primary" :underline="false" style="font-size: 13px;" @click="openPatientDetail(executeTaskData)">查看详情</el-link>
+                                            <el-link type="primary" :underline="false" style="font-size: 12px;" @click="openPatientDetail(executePatient)">患者360</el-link>
                                         </div>
-                                        <div style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: #909399; margin-bottom: 15px;">
-                                            <span><i class="fa-solid fa-venus-mars" style="color:#f56c6c;margin-right:3px;"></i> 女</span><span>|</span><span>{{ executeTaskData.phone }}</span>
+                                        <div style="font-size: 12px; line-height: 2.1; color: #909399;">
+                                            <div><span style="color:#606266;">患者编号：</span>{{ executePatient.patientId }}（脱敏）</div>
+                                            <div><span style="color:#606266;">医院科室：</span>{{ executePatient.hospital }} / {{ executePatient.dept }}</div>
+                                            <div><span style="color:#606266;">癌种：</span>{{ executePatient.indication }}　<span style="color:#606266;">治疗阶段：</span>{{ executePatient.stage }}</div>
+                                            <div><span style="color:#606266;">当前方案：</span>{{ executePatient.regimen }}</div>
+                                            <div><span style="color:#606266;">下次复诊：</span><span style="color:#409eff; font-weight: 700;">{{ executePatient.nextVisit }}</span></div>
+                                            <div><span style="color:#606266;">联系电话：</span>{{ executePatient.phone }}</div>
                                         </div>
-
+                                    </div>
+                                    <!-- 联系记录 / 历史随访 / 异常记录 -->
+                                    <div style="padding: 14px 18px; flex: 1;">
                                         <el-tabs v-model="executeActiveTab" size="small">
-                                            <el-tab-pane name="history"><template #label>历史任务 <el-badge :value="2" :max="99" /></template>
-                                                <div style="max-height: 240px; overflow-y: auto;">
-                                                    <div v-for="(t,i) in [{s:'已完成',c:'#67c23a',tid:'F260329100005181',tm:'2026-04-03 15:06',sm:'患者当前用药为正常用药；患者用药的原因为保药'},{s:'已完成',c:'#67c23a',tid:'F260117100001925',tm:'2026-01-19 09:05',sm:'患者当前用药为正常用药；患者12包费，13医保分别买了一盒药，两个月用量'}]" :key="i" style="border-left:3px solid;padding:10px 0 10px 12px;font-size:12px;" :style="{'border-color':t.c}">
-                                                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><el-tag style="background:#f2f9ec;border-color:#f2f9ec;color:#83c238;padding:0 6px;border-radius:3px;" size="small">{{t.s}}</el-tag><span style="color:#409eff;">任务编号：{{t.tid}}</span></div>
-                                                        <div style="color:#909399;margin-bottom:3px;">随访完成时间：{{t.tm}}</div>
-                                                        <div style="color:#606266;line-height:1.5;">随访小结：{{t.sm}}</div>
+                                            <el-tab-pane name="contact">
+                                                <template #label>联系记录 <el-badge :value="executeContacts.length" :max="99" /></template>
+                                                <div style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;">
+                                                    <div v-for="(c, i) in executeContacts" :key="i" style="border-left: 3px solid #409eff; padding: 6px 0 6px 10px; font-size: 12px; margin-bottom: 6px;">
+                                                        <div style="color: #303133; font-weight: 600;">{{ c.channel }} · {{ c.result }}</div>
+                                                        <div style="color: #909399;">{{ c.time }}　{{ c.note }}</div>
                                                     </div>
+                                                </div>
+                                                <div style="display: flex; gap: 6px;">
+                                                    <el-select v-model="newContact.channel" size="small" style="width: 80px;"><el-option label="电话" value="电话"></el-option><el-option label="短信" value="短信"></el-option><el-option label="平台消息" value="平台消息"></el-option></el-select>
+                                                    <el-select v-model="newContact.result" size="small" style="width: 110px;"><el-option label="已接通" value="已接通"></el-option><el-option label="未接通" value="未接通"></el-option><el-option label="已送达" value="已送达"></el-option><el-option label="家属代接" value="家属代接"></el-option></el-select>
+                                                    <el-button size="small" type="primary" plain @click="addContactRecord">记录</el-button>
                                                 </div>
                                             </el-tab-pane>
-                                            <el-tab-pane name="med"><template #label>用药记录 <el-badge :value="10" /></template><div style="font-size:13px;color:#909399;padding:15px 0;">暂无</div></el-tab-pane>
-                                            <el-tab-pane name="order"><template #label>订单信息 <el-badge :value="10" /></template><div style="font-size:13px;color:#909399;padding:15px 0;">暂无</div></el-tab-pane>
-                                            <el-tab-pane name="remark"><template #label>备注 <el-badge :value="0" /></template><div style="font-size:13px;color:#909399;padding:15px 0;">暂无</div></el-tab-pane>
+                                            <el-tab-pane name="history">
+                                                <template #label>历史随访 <el-badge :value="executePatientRecords.length" :max="99" /></template>
+                                                <div style="max-height: 240px; overflow-y: auto;">
+                                                    <div v-for="r in executePatientRecords" :key="r.id" style="border-left: 3px solid #67c23a; padding: 8px 0 8px 10px; font-size: 12px; margin-bottom: 4px; cursor: pointer;" @click="openRecordView(r)">
+                                                        <div style="display: flex; gap: 6px; margin-bottom: 3px;"><el-tag style="background:#f2f9ec;border-color:#f2f9ec;color:#83c238;padding:0 6px;border-radius:3px;" size="small">已完成</el-tag><span style="color:#409eff;">{{ r.id }}</span></div>
+                                                        <div style="color:#909399; margin-bottom: 2px;">{{ r.date }} · {{ r.taskType }}</div>
+                                                        <div style="color:#606266; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ r.summary }}</div>
+                                                    </div>
+                                                    <el-empty v-if="executePatientRecords.length === 0" description="暂无" :image-size="50"></el-empty>
+                                                </div>
+                                            </el-tab-pane>
+                                            <el-tab-pane name="events">
+                                                <template #label>异常记录 <el-badge :value="executePatientEvents.length" :max="99" /></template>
+                                                <div style="max-height: 240px; overflow-y: auto;">
+                                                    <div v-for="e in executePatientEvents" :key="e.id" style="border-left: 3px solid #f56c6c; padding: 8px 0 8px 10px; font-size: 12px; margin-bottom: 4px; cursor: pointer;" @click="openPvDetail(e)">
+                                                        <div style="display: flex; gap: 6px; margin-bottom: 3px;"><el-tag size="small" :type="pvStatusType(e.status)" effect="plain">{{ e.status }}</el-tag><span style="color:#409eff;">{{ e.id }}</span></div>
+                                                        <div style="color:#606266; line-height: 1.5;">{{ e.type }} · {{ e.summary }}</div>
+                                                    </div>
+                                                    <el-empty v-if="executePatientEvents.length === 0" description="暂无" :image-size="50"></el-empty>
+                                                </div>
+                                            </el-tab-pane>
                                         </el-tabs>
                                     </div>
-                                    <div style="padding: 16px 20px;">
-                                        <div @click="executePersonalExpanded=!executePersonalExpanded" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;">
-                                            <div style="display:flex;align-items:center;gap:8px;font-size:14px;"><i class="fa-solid fa-circle" style="font-size:6px;color:#409eff;"></i> 个人信息</div>
-                                            <div style="display:flex;align-items:center;gap:10px;"><el-button type="primary" size="small" plain @click.stop="openPatientDetail(executeTaskData)">查看详情</el-button><i :class="executePersonalExpanded?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'" style="color:#909399;font-size:12px;"></i></div>
-
-                                        </div>
-                                        <div v-show="executePersonalExpanded" style="margin-top:16px;border-top:1px solid #ebeef5;padding-top:16px;">
-                                            <div style="font-size:14px;font-weight:600;margin-bottom:16px;">基础信息</div>
-                                            <el-row :gutter="16" style="font-size:13px;">
-                                                <el-col :span="8" v-for="f in ['患者姓名','性别','年龄','手机号码','出生年月','所属省市区','家庭住址','是否随访','生存状态','首诊医院','现有适应症','患者编号']" :key="f" style="margin-bottom:18px;">
-                                                    <div style="color:#909399;margin-bottom:5px;">{{f}}</div>
-                                                    <div>{{ f==='是否随访'?'随访':'—' }}</div>
-                                                </el-col>
-                                            </el-row>
-                                        </div>
-                                    </div>
                                 </div>
-                                <!-- 右侧：表单+锚点 -->
+                                <!-- 右侧：模块化问卷 + 锚点 -->
                                 <div style="flex:1;display:flex;gap:0;overflow:hidden;border:1px solid #ebeef5;border-radius:6px;background:#fff;">
                                     <div id="execute-form-scroll" @scroll="handleFormScroll" style="flex:1;overflow-y:auto;padding:20px;">
-                                        <div id="section-tips" style="background:linear-gradient(135deg,#fff8eb,#fff3d6);border:1px solid #ffe4a0;border-radius:6px;padding:18px;margin-bottom:20px;">
-                                            <el-tag style="background:#e6a23c;border-color:#e6a23c;color:#fff;padding:0 10px;border-radius:4px;" size="small">随访重点提示</el-tag>
-                                            <div style="margin-top:10px;font-size:14px;color:#606266;line-height:1.8;">1、患者已在门店购药23个月，已购药10次</div>
-                                        </div>
-                                        <div id="section-basic" style="margin-bottom:20px;"><div style="font-size:15px;font-weight:600;margin-bottom:18px;padding-left:10px;border-left:3px solid #409eff;">随访基本情况</div></div>
-                                        <div id="section-contact" style="margin-bottom:15px;"><div style="font-size:14px;margin-bottom:10px;"><span style="color:#f56c6c;">*</span> 实际联系方式</div><el-radio-group model-value="电话"><el-radio label="电话">电话</el-radio><el-radio label="微信">微信</el-radio><el-radio label="短信">短信</el-radio><el-radio label="到店">到店</el-radio></el-radio-group></div>
-                                        <div id="section-phone" style="margin-bottom:15px;"><div style="font-size:14px;margin-bottom:10px;">联系电话</div><el-input model-value="139****3112" style="width:300px;"><template #prepend>本人</template></el-input></div>
-                                        <div id="section-success" style="margin-bottom:15px;"><div style="font-size:14px;margin-bottom:10px;"><span style="color:#f56c6c;">*</span> 是否联系成功</div><el-radio-group model-value="是"><el-radio label="是">是</el-radio><el-radio label="否">否</el-radio></el-radio-group><div style="margin-top:8px;font-size:13px;color:#909399;">操作已自动触发患者、医院面谈结果信息、用药水平、质保及相关信息……</div></div>
-                                        <div style="margin-bottom:15px;"><div style="font-size:14px;margin-bottom:10px;">是否修改变更订单用药的结束日期</div><el-radio-group model-value="否"><el-radio label="是">是</el-radio><el-radio label="否">否</el-radio></el-radio-group></div>
-                                        <div id="section-indication" style="margin-bottom:15px;"><div style="font-size:14px;margin-bottom:10px;"><span style="color:#f56c6c;">*</span> 项目适应症</div><el-input model-value="非小细胞肺癌" disabled style="width:300px;"></el-input></div>
-                                        <div id="section-questionnaire" style="margin-bottom:20px;">
-                                            <div style="font-size:15px;font-weight:600;margin-bottom:12px;padding-left:10px;border-left:3px solid #409eff;">君实随访问答</div>
-                                            <div style="background:#fafafa;border-radius:4px;padding:14px;margin-bottom:16px;">
-                                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                                                    <div style="font-size:14px;font-weight:600;">{{ executeQuestionnaireModule?.name || executeTaskData.questionnaireName || '随访问卷' }}</div>
-                                                    <el-tag size="small" effect="plain">{{ executeTaskData.questionnaireCode || 'SC' }}</el-tag>
-                                                </div>
-                                                <div style="font-size:13px;color:#606266;line-height:1.8;">
-                                                    当前任务「{{ executeTaskData.serviceSummary }}」已绑定 {{ executeQuestionnaireQuestions.length }} 道问卷问题，下方题目来自问卷模块配置。
-                                                </div>
+                                        <!-- 紧急升级警示 -->
+                                        <div v-if="emergencyTriggered" style="background: #fff1f0; border: 2px solid #f5222d; border-radius: 8px; padding: 16px 18px; margin-bottom: 16px;">
+                                            <div style="display: flex; align-items: center; gap: 10px; color: #f5222d; font-size: 15px; font-weight: 700;">
+                                                <i class="fa-solid fa-triangle-exclamation fa-beat"></i> 检测到紧急升级线索
                                             </div>
-                                            <div v-for="q in executeQuestionnaireQuestions" v-show="isQuestionVisible(q)" :key="q.id" style="border:1px solid #ebeef5;border-radius:6px;padding:14px 16px;margin-bottom:14px;background:#fff;">
+                                            <div style="margin-top: 8px; font-size: 13px; color: #cf1322; line-height: 1.8;">
+                                                建议提醒患者<strong>尽快就医 / 急诊评估</strong>，并<strong>同步项目经理 / PV 接口人</strong>；本事件提交后将按"快速/紧急"路径生成异常记录并优先处理。
+                                            </div>
+                                        </div>
+                                        <!-- 模块渲染 -->
+                                        <div v-for="mod in executeModuleList" v-show="isModuleVisible(mod)" :key="mod.id" :id="'section-mod-' + mod.id" style="margin-bottom: 24px;">
+                                            <div style="font-size: 15px; font-weight: 600; margin-bottom: 14px; padding-left: 10px; border-left: 3px solid #409eff; display: flex; align-items: center; gap: 8px;">
+                                                {{ mod.id }}. {{ mod.name }}
+                                                <el-tag v-if="[8,9].includes(mod.id)" size="small" type="warning" effect="plain">条件触发</el-tag>
+                                            </div>
+                                            <div v-for="q in moduleQuestions(mod.id)" v-show="isPspQuestionVisible(q)" :key="q.no" style="border:1px solid #ebeef5;border-radius:6px;padding:14px 16px;margin-bottom:12px;background:#fff;">
                                                 <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;">
-                                                    <span style="color:#f56c6c;">*</span>
+                                                    <span v-if="q.required !== 'optional'" style="color:#f56c6c;">*</span>
                                                     <div style="flex:1;">
-                                                        <div style="font-size:14px;color:#303133;font-weight:600;line-height:1.7;">{{ String(q.order).padStart(3, '0') }}、{{ q.question }}</div>
-                                                        <div style="font-size:12px;color:#909399;margin-top:3px;">{{ q.label }} · {{ q.type }} · {{ q.optionCount }} 个选项</div>
+                                                        <div style="font-size:14px;color:#303133;font-weight:600;line-height:1.7;">Q{{ q.no }}、{{ q.desc || q.content }}</div>
+                                                        <div style="font-size:12px;color:#909399;margin-top:3px;">
+                                                            {{ q.content }} · {{ pspTypeLabel(q.type) }}<span v-if="q.required === 'cond'"> · 条件必答</span>
+                                                        </div>
+                                                        <div v-if="q.script" style="margin-top: 6px; font-size: 12px; color: #8a6d3b; background: #fffbf0; border-radius: 4px; padding: 5px 9px;">
+                                                            <i class="fa-solid fa-comment-dots" style="margin-right: 5px;"></i>{{ q.script }}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <el-radio-group v-if="q.answerType === 0" v-model="executeAnswers[q.id]" style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;">
+                                                <!-- 系统字段：自动带入 -->
+                                                <el-input v-if="q.type === 'system'" :model-value="systemFieldValue(q.no)" disabled style="width: 340px;">
+                                                    <template #prepend>系统带入</template>
+                                                </el-input>
+                                                <!-- 单选 -->
+                                                <el-radio-group v-else-if="q.type === 'radio'" v-model="executeAnswers[q.no]" @change="onPspAnswerChange(q)" style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;">
                                                     <div v-for="opt in q.options" :key="opt.sort" style="width:100%;">
-                                                        <el-radio :label="opt.answerText">{{ opt.answerText }}</el-radio>
-                                                        <el-input v-if="executeAnswers[q.id] === opt.answerText && needsOptionText(q, opt)" v-model="executeAnswers[q.id + '_' + opt.sort + '_text']" size="small" :placeholder="opt.textTip || '请补充说明'" style="margin:6px 0 0 24px;width:360px;"></el-input>
+                                                        <el-radio :label="opt.text">
+                                                            {{ opt.text }}
+                                                            <el-tag v-if="q.no === 48 && opt.default" size="small" type="primary" effect="plain" style="margin-left: 4px;">默认</el-tag>
+                                                        </el-radio>
+                                                        <el-input v-if="opt.fill && executeAnswers[q.no] === opt.text" v-model="executeAnswers[q.no + '_fill_' + opt.sort]" size="small" placeholder="请补充说明" style="margin:6px 0 0 24px;width:360px;" @input="onPspAnswerChange(q)"></el-input>
                                                     </div>
                                                 </el-radio-group>
-                                                <el-checkbox-group v-else v-model="executeAnswers[q.id]" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;">
+                                                <!-- 多选 -->
+                                                <el-checkbox-group v-else-if="q.type === 'checkbox'" v-model="executeAnswers[q.no]" @change="onPspAnswerChange(q)" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;">
                                                     <div v-for="opt in q.options" :key="opt.sort">
-                                                        <el-checkbox :label="opt.answerText">{{ opt.answerText }}</el-checkbox>
-                                                        <el-input v-if="Array.isArray(executeAnswers[q.id]) && executeAnswers[q.id].includes(opt.answerText) && needsOptionText(q, opt)" v-model="executeAnswers[q.id + '_' + opt.sort + '_text']" size="small" :placeholder="opt.textTip || '请补充说明'" style="margin:6px 0 0 24px;width:320px;"></el-input>
+                                                        <el-checkbox :label="opt.text" :style="{ color: q.no === 78 && opt.text !== '无以上情况' ? '#f5222d' : '' }">{{ opt.text }}</el-checkbox>
+                                                        <el-input v-if="opt.fill && Array.isArray(executeAnswers[q.no]) && executeAnswers[q.no].includes(opt.text)" v-model="executeAnswers[q.no + '_fill_' + opt.sort]" size="small" placeholder="请补充说明" style="margin:6px 0 0 24px;width:320px;" @input="onPspAnswerChange(q)"></el-input>
                                                     </div>
                                                 </el-checkbox-group>
-                                            </div>
-                                        </div>
-                                        <div id="section-summary" style="margin-bottom:20px;"><div style="font-size:15px;font-weight:600;margin-bottom:12px;padding-left:10px;border-left:3px solid #409eff;">随访小结</div><el-input type="textarea" :rows="4" placeholder="请输入随访小结..."></el-input></div>
-                                        <div id="section-care" style="margin-bottom:20px;"><div style="font-size:15px;font-weight:600;margin-bottom:12px;padding-left:10px;border-left:3px solid #409eff;">患者关怀随访</div><div style="font-size:13px;color:#909399;padding:20px 0;">暂无患者关怀随访表单</div></div>
-                                        <div id="section-doctor" style="margin-bottom:20px;"><div style="font-size:15px;font-weight:600;margin-bottom:12px;padding-left:10px;border-left:3px solid #409eff;">患者关于主治医师相关</div><div style="font-size:13px;color:#909399;padding:20px 0;">暂无相关表单</div></div>
-                                        <div id="section-issues" style="margin-bottom:20px;"><div style="font-size:15px;font-weight:600;margin-bottom:12px;padding-left:10px;border-left:3px solid #409eff;">关于以上相关问题</div><div style="font-size:13px;color:#909399;padding:20px 0;">暂无相关表单</div></div>
-                                        <div id="section-user" style="margin-bottom:20px;"><div style="font-size:15px;font-weight:600;margin-bottom:12px;padding-left:10px;border-left:3px solid #409eff;">用户反馈</div><div style="font-size:13px;color:#909399;padding:20px 0;">暂无用户反馈表单</div></div>
-                                    </div>
-                                    <div style="width:230px;min-width:230px;border-left:1px solid #ebeef5;padding:15px 0 15px 5px;display:flex;background:#fff;position:relative;">
-                                        <!-- 定制的竖向滚动轨道 (靠左) -->
-                                        <div style="width:36px;position:relative;display:flex;justify-content:center;padding:35px 0;">
-                                            <div style="width:2px;height:100%;background:#e4e7ed;position:relative;">
-                                                <!-- 顶部和底部圆点 -->
-                                                <div style="position:absolute;top:0;left:-3px;width:8px;height:8px;background:#409eff;border-radius:50%;"></div>
-                                                <!-- 动态进度条 -->
-                                                <div :style="{height: executeProgress + '%'}" style="position:absolute;top:0;left:0;width:100%;background:#409eff;"></div>
-                                                <!-- 滑块圆点及文字 (无圆框，文字在左) -->
-                                                <div :style="{top: executeProgress + '%'}" style="position:absolute;left:-3px;width:8px;height:8px;background:#409eff;border-radius:50%;transform:translateY(-50%);z-index:2;">
-                                                    <div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:12px;color:#409eff;font-weight:500;white-space:nowrap;user-select:none;">
-                                                        {{ executeProgress }}%
-                                                    </div>
+                                                <!-- 文本 / 日期 / 月份 -->
+                                                <el-input v-else-if="q.type === 'text'" v-model="executeAnswers[q.no]" type="textarea" :rows="2" placeholder="请客观记录（患者原话/事实，不判断因果）" style="max-width: 560px;" @input="onPspAnswerChange(q)"></el-input>
+                                                <el-date-picker v-else-if="q.type === 'date'" v-model="executeAnswers[q.no]" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" @change="onPspAnswerChange(q)"></el-date-picker>
+                                                <el-date-picker v-else-if="q.type === 'month'" v-model="executeAnswers[q.no]" type="month" value-format="YYYY-MM" placeholder="选择年月" @change="onPspAnswerChange(q)"></el-date-picker>
+                                                <!-- Q48 主动确认提示 -->
+                                                <div v-if="q.no === 48 && !safetyConfirmed" style="margin-top: 8px; font-size: 12px; color: #e6a23c; background: #fffbf0; border: 1px solid #f5e6c4; border-radius: 4px; padding: 6px 10px;">
+                                                    <i class="fa-solid fa-hand-pointer" style="margin-right: 5px;"></i>系统默认展示"未出现"，请与患者核对后<strong>主动点击确认</strong>，否则无法提交
+                                                </div>
+                                                <div v-if="q.no === 48 && safetyConfirmed" style="margin-top: 8px; font-size: 12px; color: #67c23a;">
+                                                    <i class="fa-solid fa-circle-check" style="margin-right: 5px;"></i>安全性总筛已主动确认
                                                 </div>
                                             </div>
                                         </div>
-                                        
-                                        <!-- 锚点内容 (靠右) -->
+                                        <!-- 随访小结 -->
+                                        <div id="section-summary" style="margin-bottom: 20px;">
+                                            <div style="font-size:15px;font-weight:600;margin-bottom:12px;padding-left:10px;border-left:3px solid #409eff;">13. 随访小结</div>
+                                            <div style="border:1px solid #ebeef5;border-radius:6px;padding:14px 16px;background:#fff;">
+                                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                                    <span style="font-size: 13px; color: #606266;"><span style="color:#f56c6c;">*</span> 本次随访小结（自动汇总"加入小结"答案，可编辑）</span>
+                                                    <el-button size="small" link type="primary" @click="regenerateSummary"><i class="fa-solid fa-rotate" style="margin-right: 4px;"></i>重新生成</el-button>
+                                                </div>
+                                                <el-input v-model="summaryText" type="textarea" :rows="6" placeholder="提交前必填：汇总本次随访的有效性、依从性、安全性及服务动作" @input="summaryDirty = true"></el-input>
+                                                <div style="margin-top: 16px;">
+                                                    <div style="font-size: 13px; color: #303133; font-weight: 600; margin-bottom: 8px;"><span style="color:#f56c6c;">*</span> 本次随访是否需要升级或转交？</div>
+                                                    <el-checkbox-group v-model="escalationChoice" style="display: flex; flex-wrap: wrap; gap: 8px 18px;">
+                                                        <el-checkbox v-for="o in ['无需升级','项目经理','PV复核','PV初筛确认','质量部门','医学/院内接口']" :key="o" :label="o">{{ o }}</el-checkbox>
+                                                    </el-checkbox-group>
+                                                    <el-input v-if="escalationChoice.length && !escalationChoice.includes('无需升级')" v-model="escalationNote" size="small" placeholder="请填写关联记录编号（AE/PV/质量/项目工单），如 EV-2026-xxxx" style="margin-top: 10px; width: 420px;"></el-input>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="width:210px;min-width:210px;border-left:1px solid #ebeef5;padding:15px 0 15px 5px;display:flex;background:#fff;position:relative;">
+                                        <div style="width:36px;position:relative;display:flex;justify-content:center;padding:35px 0;">
+                                            <div style="width:2px;height:100%;background:#e4e7ed;position:relative;">
+                                                <div style="position:absolute;top:0;left:-3px;width:8px;height:8px;background:#409eff;border-radius:50%;"></div>
+                                                <div :style="{height: executeProgress + '%'}" style="position:absolute;top:0;left:0;width:100%;background:#409eff;"></div>
+                                                <div :style="{top: executeProgress + '%'}" style="position:absolute;left:-3px;width:8px;height:8px;background:#409eff;border-radius:50%;transform:translateY(-50%);z-index:2;">
+                                                    <div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:12px;color:#409eff;font-weight:500;white-space:nowrap;user-select:none;">{{ executeProgress }}%</div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;padding-right:10px;">
                                             <div style="font-size:14px;font-weight:600;margin-bottom:15px;display:flex;align-items:center;gap:6px;">
-                                                <i class="fa-solid fa-bars-staggered" style="color:#606266;"></i> 随访重点
-                                                <i class="fa-solid fa-circle-minus" style="color:#409eff;margin-left:auto;font-size:14px;cursor:pointer;"></i>
+                                                <i class="fa-solid fa-bars-staggered" style="color:#606266;"></i> 问卷模块
                                             </div>
                                             <div style="flex:1;overflow-y:auto;" class="hide-scrollbar">
-                                                <div v-for="sec in executeFormSections" :key="sec.id" @click="scrollToSection(sec.id)" 
+                                                <div v-for="sec in executeFormSections" :key="sec.id" @click="scrollToSection(sec.id)"
                                                      :style="{
-                                                        padding: sec.isChild ? '6px 10px 6px 20px' : '8px 10px 8px 10px',
-                                                        fontSize: '13px',
-                                                        cursor: 'pointer',
-                                                        marginBottom: '2px',
-                                                        color: executeActiveSection===sec.id ? '#409eff' : (sec.isChild ? '#909399' : '#606266'),
-                                                        fontWeight: executeActiveSection===sec.id ? '500' : (sec.isChild ? 'normal' : '600'),
+                                                        padding: '8px 10px', fontSize: '13px', cursor: 'pointer', marginBottom: '2px',
+                                                        color: executeActiveSection===sec.id ? '#409eff' : '#606266',
+                                                        fontWeight: executeActiveSection===sec.id ? '500' : '600',
                                                         borderLeft: executeActiveSection===sec.id ? '3px solid #409eff' : '3px solid transparent',
                                                         background: executeActiveSection===sec.id ? '#f0f7ff' : 'transparent',
-                                                        transition: 'all 0.2s',
-                                                        display: 'flex',
-                                                        alignItems: 'center'
+                                                        transition: 'all 0.2s', display: 'flex', alignItems: 'center'
                                                      }">
                                                     <span style="margin-right:6px;font-size:18px;line-height:0;color:#c0c4cc;">·</span> <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ sec.title }}</span>
                                                 </div>
@@ -729,11 +1174,11 @@
                             <!-- 底部按钮 -->
                             <div style="background:#fff;padding:15px 30px;border-top:1px solid #ebeef5;display:flex;justify-content:flex-end;gap:12px;margin-top:15px;border-radius:0 0 8px 8px;">
                                 <el-button @click="handleTabRemove(activePath)">关闭</el-button>
-                                <el-button type="primary" @click="handleExecuteConfirm">确认</el-button>
+                                <el-button type="primary" @click="submitPspFollowup"><i class="fa-solid fa-paper-plane" style="margin-right: 6px;"></i>提交随访</el-button>
                             </div>
                         </div>
 
-                        <!-- 患者详情页面 -->
+                        <!-- 患者 360 详情页面 -->
                         <div v-else-if="isPatientDetailPage" class="page-patient-detail">
                             <!-- 顶部概览卡片 -->
                             <el-card shadow="never" class="detail-header-card" style="margin-bottom: 20px; border: none; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
@@ -741,21 +1186,22 @@
                                     <div style="display: flex; align-items: center; gap: 20px;">
                                         <div style="font-size: 26px; font-weight: bold; color: #1d2129;">{{ patientDetailData.name }}</div>
                                         <div style="display: flex; gap: 8px;">
-                                            <el-tag size="small" round effect="plain" type="info">{{ patientDetailData.gender || '女' }}</el-tag>
+                                            <el-tag size="small" round effect="plain" type="info">{{ patientDetailData.gender || '—' }}</el-tag>
                                             <el-tag size="small" round effect="plain" type="info">{{ patientDetailData.age || '—' }}岁</el-tag>
+                                            <el-tag size="small" round effect="plain" type="primary">{{ patientDetailData.stage || '—' }}</el-tag>
                                         </div>
                                         <div style="width: 1px; height: 24px; background: #e5e6eb; margin: 0 10px;"></div>
                                         <div style="display: flex; align-items: center; gap: 12px;">
-                                            <el-tag 
-                                                :type="patientDetailData.medicationStatus === '用药中' ? 'success' : (['方案调整', '减量', '暂停'].includes(patientDetailData.medicationStatus) ? 'warning' : (['停药', '已出组'].includes(patientDetailData.medicationStatus) ? 'danger' : 'info'))" 
-                                                effect="light" 
+                                            <el-tag
+                                                :type="patientDetailData.medicationStatus === '用药中' ? 'success' : (['方案调整', '减量', '暂停'].includes(patientDetailData.medicationStatus) ? 'warning' : (['停药', '已出组'].includes(patientDetailData.medicationStatus) ? 'danger' : 'info'))"
+                                                effect="light"
                                                 class="med-status-tag">
                                                 {{ patientDetailData.medicationStatus || '用药中' }}
                                             </el-tag>
                                             <div style="display: flex; align-items: center; background: #f2f3f5; padding: 4px 12px; border-radius: 20px;">
                                                 <span :class="['risk-dot', patientDetailData.riskLevel || 'green']"></span>
                                                 <span style="font-size: 13px; font-weight: 600;" :style="{ color: patientDetailData.riskLevel === 'red' ? '#f5222d' : (patientDetailData.riskLevel === 'yellow' ? '#faad14' : '#52c41a') }">
-                                                    {{ patientDetailData.riskLevel === 'red' ? '高风险' : (patientDetailData.riskLevel === 'yellow' ? '中风险' : '正常') }}
+                                                    {{ patientDetailData.riskLevel === 'red' ? '高脱落风险' : (patientDetailData.riskLevel === 'yellow' ? '中脱落风险' : '无明显风险') }}
                                                 </span>
                                             </div>
                                         </div>
@@ -763,39 +1209,39 @@
 
                                     <div style="display: flex; gap: 40px; margin-right: 30px;">
                                         <div class="header-info-item">
-                                            <div class="info-label" style="color: #86909c; font-size: 12px; margin-bottom: 4px;">患者编号</div>
+                                            <div class="info-label" style="color: #86909c; font-size: 12px; margin-bottom: 4px;">患者编号（脱敏）</div>
                                             <div class="info-value" style="font-weight: 600; color: #4e5969;">{{ patientDetailData.patientId }}</div>
                                         </div>
                                         <div class="header-info-item">
-                                            <div class="info-label" style="color: #86909c; font-size: 12px; margin-bottom: 4px;">联系电话</div>
-                                            <div class="info-value" style="font-weight: 600; color: #4e5969;">{{ patientDetailData.phone }}</div>
+                                            <div class="info-label" style="color: #86909c; font-size: 12px; margin-bottom: 4px;">下次复诊日期</div>
+                                            <div class="info-value" style="font-weight: 700; color: #409eff;">{{ patientDetailData.nextVisit || '—' }}</div>
                                         </div>
                                         <div class="header-info-item">
                                             <div class="info-label" style="color: #86909c; font-size: 12px; margin-bottom: 4px;">随访专员</div>
-                                            <div class="info-value" style="font-weight: 600; color: #409eff;">王专员</div>
+                                            <div class="info-value" style="font-weight: 600; color: #409eff;">{{ patientDetailData.specialist || '王专员' }}</div>
                                         </div>
                                     </div>
                                 </div>
                             </el-card>
 
-                            <!-- 患者信息区块 -->
+                            <!-- 基本信息区块 -->
                             <div class="detail-section">
-                                <div class="section-tag-title">患者信息</div>
+                                <div class="section-tag-title">基本信息</div>
                                 <div class="section-content">
                                     <el-row :gutter="20">
                                         <el-col :span="6" v-for="item in [
                                             { label: '患者姓名', value: patientDetailData.name },
-                                            { label: '性别', value: patientDetailData.gender || '女' },
-                                            { label: '年龄', value: patientDetailData.age || '—' },
+                                            { label: '性别', value: patientDetailData.gender || '—' },
+                                            { label: '年龄', value: (patientDetailData.age || '—') + ' 岁' },
                                             { label: '手机号码', value: patientDetailData.phone },
-                                            { label: '出生年月', value: patientDetailData.birthDate || '—' },
-                                            { label: '所属省市区', value: patientDetailData.area || '—' },
-                                            { label: '家庭住址', value: patientDetailData.address || '—' },
-                                            { label: '是否随访', value: '随访' },
-                                            { label: '生存状态', value: '在世' },
                                             { label: '首诊医院', value: patientDetailData.hospital },
-                                            { label: '现有适应症', value: patientDetailData.indication || '非小细胞肺癌' },
-                                            { label: '患者编号', value: patientDetailData.patientId }
+                                            { label: '科室', value: patientDetailData.dept || '—' },
+                                            { label: '癌种/适应症', value: patientDetailData.indication },
+                                            { label: '治疗阶段', value: patientDetailData.stage || '—' },
+                                            { label: '当前治疗方案', value: patientDetailData.regimen || '拓益 240mg q3w' },
+                                            { label: '首次使用拓益时间', value: patientDetailData.firstUse || '—' },
+                                            { label: '下次复诊日期', value: patientDetailData.nextVisit || '—' },
+                                            { label: '建档时间', value: patientDetailData.createTime || '—' }
                                         ]" :key="item.label" style="margin-bottom: 25px;">
                                             <div class="item-label">{{ item.label }}</div>
                                             <div class="item-value">{{ item.value }}</div>
@@ -804,57 +1250,80 @@
                                 </div>
                             </div>
 
-                            <!-- 项目情况区块 -->
+                            <!-- 随访记录时间线 -->
                             <div class="detail-section">
-                                <div class="section-tag-title">项目情况</div>
-                                <div class="section-content" style="padding: 0;">
-                                    <el-table :data="[{ id: 1, project: '君实随访', product: '特瑞普利单抗注射液', indication: '非小细胞肺癌', status: '脱落' }]" border style="width: 100%">
-                                        <el-table-column type="index" label="序号" width="60" align="center"></el-table-column>
-                                        <el-table-column prop="project" label="项目"></el-table-column>
-                                        <el-table-column prop="product" label="产品"></el-table-column>
-                                        <el-table-column prop="indication" label="适应症"></el-table-column>
-                                        <el-table-column prop="status" label="用药状态"></el-table-column>
-                                        <el-table-column label="操作" width="200" align="center">
-                                            <template #default>
-                                                <el-button link type="primary">修改适应症</el-button>
-                                                <el-button link type="primary">用药状态变更</el-button>
-                                            </template>
-                                        </el-table-column>
-                                    </el-table>
-                                </div>
-                            </div>
-
-                            <!-- 首方信息区块 -->
-                            <div class="detail-section">
-                                <div class="section-tag-title">首方信息</div>
-                                <div class="section-content" style="padding: 40px; text-align: center; color: #909399;">
-                                    暂无数据
-                                </div>
-                            </div>
-
-                            <!-- 用药情况 -->
-                            <div class="detail-section">
-                                <div class="section-tag-title">用药情况</div>
+                                <div class="section-tag-title">随访记录时间线</div>
                                 <div class="section-content">
-                                    <div style="font-weight: bold; color: #409eff; margin-bottom: 15px; font-size: 14px;">目前使用药物</div>
-                                    <el-table :data="[{ id: 1, name: '拓益', generic: '特瑞普利单抗注射液', amount: '2086', start: '2024-06-18', end: '2024-06-18' }]" border style="width: 100%">
-                                        <el-table-column type="index" label="序号" width="60" align="center"></el-table-column>
-                                        <el-table-column prop="name" label="品名"></el-table-column>
-                                        <el-table-column prop="generic" label="通用名"></el-table-column>
-                                        <el-table-column prop="amount" label="累计金额"></el-table-column>
-                                        <el-table-column prop="start" label="开始用药时间"></el-table-column>
-                                        <el-table-column prop="end" label="预计结束时间"></el-table-column>
-                                        <el-table-column label="查看订单" width="100" align="center">
-                                            <template #default>
-                                                <el-button link type="primary">查看</el-button>
+                                    <el-timeline v-if="patientRecords.length > 0" style="padding-left: 5px;">
+                                        <el-timeline-item v-for="r in patientRecords" :key="r.id" :timestamp="r.date + ' · ' + r.executor" placement="top" :type="r.eventId ? 'danger' : 'primary'" :hollow="!r.eventId">
+                                            <div style="border: 1px solid #ebeef5; border-radius: 6px; padding: 12px 14px; cursor: pointer;" @click="openRecordView(r)">
+                                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                                    <span style="font-weight: 600; color: #409eff;">{{ r.id }} · {{ r.taskType }}</span>
+                                                    <el-tag v-if="r.eventId" size="small" type="danger" effect="plain">关联事件 {{ r.eventId }}</el-tag>
+                                                </div>
+                                                <div style="font-size: 13px; color: #606266; line-height: 1.7;">{{ r.summary }}</div>
+                                            </div>
+                                        </el-timeline-item>
+                                    </el-timeline>
+                                    <el-empty v-else description="暂无随访记录" :image-size="60"></el-empty>
+                                </div>
+                            </div>
+
+                            <!-- 任务历史 -->
+                            <div class="detail-section">
+                                <div class="section-tag-title">任务历史</div>
+                                <div class="section-content" style="padding: 0;">
+                                    <el-table :data="patientTasks" border style="width: 100%">
+                                        <el-table-column prop="taskId" label="任务编号" width="140"></el-table-column>
+                                        <el-table-column prop="taskType" label="任务类型" width="170"></el-table-column>
+                                        <el-table-column prop="planDate" label="计划执行时间" width="110"></el-table-column>
+                                        <el-table-column label="状态" width="90">
+                                            <template #default="scope">
+                                                <el-tag size="small" :type="scope.row.status==='已完成'?'success':(scope.row.status==='已超期'?'danger':(scope.row.status==='执行失败'?'info':'warning'))">{{ scope.row.status }}</el-tag>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column prop="executor" label="执行人" width="90">
+                                            <template #default="scope">{{ scope.row.executor || '—' }}</template>
+                                        </el-table-column>
+                                        <el-table-column prop="serviceSummary" label="服务摘要" min-width="220" show-overflow-tooltip></el-table-column>
+                                        <el-table-column label="操作" width="80" align="center">
+                                            <template #default="scope">
+                                                <el-button v-if="scope.row.status !== '已完成'" link type="primary" size="small" @click="handleExecuteTask(scope.row)">执行</el-button>
+                                                <span v-else style="color: #c0c4cc; font-size: 13px;">—</span>
                                             </template>
                                         </el-table-column>
                                     </el-table>
+                                </div>
+                            </div>
+
+                            <!-- 异常记录 -->
+                            <div class="detail-section">
+                                <div class="section-tag-title">异常记录</div>
+                                <div class="section-content" style="padding: 0;">
+                                    <el-table :data="patientEvents" border style="width: 100%">
+                                        <el-table-column label="事件编号" width="130">
+                                            <template #default="scope">
+                                                <el-link type="primary" @click="openPvDetail(scope.row)">{{ scope.row.id }}</el-link>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column prop="type" label="事件类型" width="160"></el-table-column>
+                                        <el-table-column prop="occurDate" label="发生时间" width="105"></el-table-column>
+                                        <el-table-column label="风险分层" width="105">
+                                            <template #default="scope">
+                                                <el-tag size="small" :type="scope.row.risk==='快速/紧急'?'danger':(scope.row.risk==='关注跟进'?'warning':'success')" effect="plain">{{ scope.row.risk }}</el-tag>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column label="当前状态" width="95">
+                                            <template #default="scope">
+                                                <el-tag size="small" :type="pvStatusType(scope.row.status)">{{ scope.row.status }}</el-tag>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column prop="summary" label="事件描述" min-width="220" show-overflow-tooltip></el-table-column>
+                                    </el-table>
+                                    <el-empty v-if="patientEvents.length === 0" description="暂无异常记录" :image-size="60"></el-empty>
                                 </div>
                             </div>
                         </div>
-
-
 
                         <!-- 留言管理页面 -->
                         <div v-else-if="activePath === 'message-manage'" class="page-messages" style="display: flex; gap: 0; height: calc(100vh - 160px); background: #fff; border: 1px solid #ebeef5; border-radius: 8px; overflow: hidden;">
@@ -971,9 +1440,7 @@
                                                     <el-tag size="small" type="info" effect="plain">{{ s.code }}</el-tag>
                                                 </div>
                                                 <div style="font-size: 12px; color: #909399; margin-bottom: 8px; display: flex; gap: 8px;">
-                                                    <span>{{ s.productName }}</span>
-                                                    <span>|</span>
-                                                    <span>{{ s.indication }}</span>
+                                                    <span>{{ s.scene }}</span>
                                                 </div>
                                                 <div style="font-size: 13px; color: #606266; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" v-html="s.content"></div>
                                             </div>
@@ -1447,7 +1914,6 @@
                     <el-input v-model="addRuleForm.executeDays" placeholder="请输入执行天数"></el-input>
                 </el-form-item>
             </el-form>
-            </template>
         </el-dialog>
 
         <!-- 异常上报弹窗 -->
@@ -1549,6 +2015,26 @@
             </template>
         </el-dialog>
 
+        <!-- PV 状态机操作弹窗 -->
+        <el-dialog v-model="pvActionVisible" :title="pvActionTitle" width="520px">
+            <div style="margin-bottom: 15px; background: #f8f9fb; border-radius: 6px; padding: 12px 14px; font-size: 13px; color: #606266; line-height: 1.8;">
+                <div><b>事件编号：</b>{{ pvDetail.id }}　<b>当前状态：</b>{{ pvDetail.status }}</div>
+                <div><b>操作：</b><el-tag size="small" :type="pvStatusType(pvActionTarget)" effect="light">{{ pvDetail.status }} → {{ pvActionTarget }}</el-tag></div>
+                <div v-if="pvActionTarget === '已转PV'" style="margin-top: 6px; color: #e6a23c;"><i class="fa-solid fa-circle-info"></i> 确认四要素已邮件转交君实 PV 接口人后标记（线下邮件，系统仅记录）。</div>
+                <div v-if="pvActionTarget === '已上报'" style="margin-top: 6px; color: #e6a23c;"><i class="fa-solid fa-circle-info"></i> 确认 PV 已收录后标记；系统不执行实际上报动作。</div>
+                <div v-if="pvActionTarget === '需补充'" style="margin-top: 6px; color: #e6a23c;"><i class="fa-solid fa-circle-info"></i> 提交后将自动生成"PV/事件补充随访"任务（关联原事件编号 {{ pvDetail.id }}）。</div>
+            </div>
+            <el-form label-width="80px">
+                <el-form-item label="操作备注" required>
+                    <el-input type="textarea" :rows="3" v-model="pvActionRemark" placeholder="请填写操作备注（将写入操作留痕，可抽检）"></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="pvActionVisible = false">取消</el-button>
+                <el-button type="primary" @click="confirmPvAction">确认{{ pvActionTarget }}</el-button>
+            </template>
+        </el-dialog>
+
     </div>
 
     <!-- Vue 3 and Element Plus JS -->
@@ -1556,6 +2042,8 @@
     <script src="https://unpkg.com/element-plus"></script>
     
     <script src="js/data.js"></script>
+    <script src="js/psp-questionnaire.js"></script>
+    <script src="js/psp-data.js"></script>
     <script src="js/questionnaires.js"></script>
     <script src="js/base-data.js"></script>
     <script src="js/app.js"></script>
